@@ -19,80 +19,75 @@ package metrics_collector
 
 import (
 	"fmt"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
+	"os"
+	"path/filepath"
+	"sync"
 	"time"
 	//"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	//"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	//
-	// Uncomment to load all auth plugins
-	// _ "k8s.io/client-go/plugin/pkg/client/auth"
-	//
-	// Or uncomment to load specific auth plugins
-	// _ "k8s.io/client-go/plugin/pkg/client/auth/azure"
-	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	// _ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
-	// _ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
 )
 
-func main() {
-	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	// creates the clientset
-	clientset, err := metricsv.NewForConfig(config)
+const fetchMetricsInterval = 30 * time.Second
+
+func CollectMetricsOutOfCluster(wg *sync.WaitGroup, podsMetricsChan chan v1beta1.PodMetrics,
+	nodesMetricsChan chan v1beta1.NodeMetrics) {
+	fmt.Println("Starting metrics-collector")
+	clientset, err := getClientsetOutOfCluster()
 	if err != nil {
 		panic(err.Error())
 	}
 	for {
-		// get pods in all the namespaces by omitting namespace
-		// Or specify namespace to get pods in particular namespace
+		// TODO: handle pods and nodes with the same generic code
+		// PODS
 		podMetricsList, err := clientset.MetricsV1beta1().PodMetricses("").List(metav1.ListOptions{})
-		fmt.Printf("Get metrics for %d pods\n", len(podMetricsList.Items))
-
 		if err != nil {
 			panic(err.Error())
 		}
-
-		time.Sleep(5 * time.Second)
+		fmt.Printf("Collector: Got metrics for %d pods\n", len(podMetricsList.Items))
+		for _, podMetrics := range podMetricsList.Items {
+			podsMetricsChan <- podMetrics
+		}
+		// NODES
+		nodeMetricsList, err := clientset.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+		if err != nil {
+			panic(err.Error())
+		}
+		fmt.Printf("Collector: Got metrics for %d nodes\n", len(nodeMetricsList.Items))
+		for _, nodeMetrics := range nodeMetricsList.Items {
+			nodesMetricsChan <- nodeMetrics
+		}
+		time.Sleep(fetchMetricsInterval)
 	}
 }
 
+func getClientsetOutOfCluster() (clientset *metricsv.Clientset, err error) {
+	home := os.Getenv("HOME")
+	kubeconfig := filepath.Join(home, ".kube", "kind-config-kind")
 
-// Examples for error handling:
-// - Use helper functions e.g. errors.IsNotFound()
-// - And/or cast to StatusError and use its properties like e.g. ErrStatus.Message
-
-
-
-/*
-pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-		fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
-
-
-
-pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
-if err != nil {
-panic(err.Error())
+	// use the current context in kubeconfig
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		return
+	}
+	// creates the clientset
+	clientset, err = metricsv.NewForConfig(config)
+	return
 }
-fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
+
+func getClientsetInCluster() (clientset *metricsv.Clientset, err error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	clientset, err = metricsv.NewForConfig(config)
+	return
+}
 
 // Examples for error handling:
 // - Use helper functions e.g. errors.IsNotFound()
 // - And/or cast to StatusError and use its properties like e.g. ErrStatus.Message
-_, err = clientset.CoreV1().Pods("default").Get("example-xxxxx", metav1.GetOptions{})
-if errors.IsNotFound(err) {
-fmt.Printf("Pod example-xxxxx not found in default namespace\n")
-} else if statusError, isStatus := err.(*errors.StatusError); isStatus {
-fmt.Printf("Error getting pod %v\n", statusError.ErrStatus.Message)
-} else if err != nil {
-panic(err.Error())
-} else {
-fmt.Printf("Found example-xxxxx pod in default namespace\n")
-}*/
