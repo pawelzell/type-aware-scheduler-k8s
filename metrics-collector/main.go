@@ -19,11 +19,8 @@ package metrics_collector
 
 import (
 	"fmt"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 	//"k8s.io/apimachinery/pkg/api/errors"
@@ -34,10 +31,10 @@ import (
 
 const fetchMetricsInterval = 30 * time.Second
 
-func CollectMetricsOutOfCluster(wg *sync.WaitGroup, podsMetricsChan chan v1beta1.PodMetrics,
+func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan chan v1beta1.PodMetrics,
 	nodesMetricsChan chan v1beta1.NodeMetrics) {
 	fmt.Println("Starting metrics-collector")
-	clientset, err := getClientsetOutOfCluster()
+	clientset, err := metricsv.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -63,29 +60,6 @@ func CollectMetricsOutOfCluster(wg *sync.WaitGroup, podsMetricsChan chan v1beta1
 		}
 		time.Sleep(fetchMetricsInterval)
 	}
-}
-
-func getClientsetOutOfCluster() (clientset *metricsv.Clientset, err error) {
-	home := os.Getenv("HOME")
-	kubeconfig := filepath.Join(home, ".kube", "kind-config-kind")
-
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return
-	}
-	// creates the clientset
-	clientset, err = metricsv.NewForConfig(config)
-	return
-}
-
-func getClientsetInCluster() (clientset *metricsv.Clientset, err error) {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-	clientset, err = metricsv.NewForConfig(config)
-	return
 }
 
 // Examples for error handling:
