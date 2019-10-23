@@ -1,21 +1,43 @@
 package cluster_view
 
-/**
 import (
 	v1 "k8s.io/api/core/v1"
 	"sync"
+	"type-aware-scheduler/interference"
 )
+
+type podHanderFn func(*v1.Pod)
+type nodeHanderFn func(*v1.Node)
 
 type PodId struct {
 	Name string
 	Namespace string
 }
 
+type PodData struct {
+	Interference interference.InterferenceInfo
+	Node string // Empty if node is not bound
+	Data *v1.Pod
+}
 
-var PodLock *sync.RWMutex
-var NodeLock *sync.RWMutex
+type NodeData struct {
+	TypeToLoad []float32
+	Data *v1.Node
+}
 
-var PodLookup map[PodId]v1.Pod
-var NodeLookup map[string]v1.Node
- */
-// TODO list of sun of loads from respective types
+type PodIdAndInterference struct {
+	Id PodId
+	Interference interference.InterferenceInfo
+}
+
+// Pod/Node Add/Delete/Update
+// AddBindDecision
+// Get GetNodes
+
+var clusterViewLock *sync.RWMutex
+
+var podLookup map[PodId]PodData
+var nodeLookup map[string]NodeData
+var podToBeScheduled chan <- PodData
+
+

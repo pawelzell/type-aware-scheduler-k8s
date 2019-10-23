@@ -8,6 +8,8 @@ import (
 )
 
 const SchedulerName = "type-aware-scheduler"
+const NumberOfTaskTypes = 2
+// TODO load number of task types from yaml configuration
 
 func GetConfigInCluster() (*rest.Config, error) {
 	return rest.InClusterConfig()

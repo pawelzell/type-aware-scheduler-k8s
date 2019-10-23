@@ -18,9 +18,9 @@ limitations under the License.
 package metrics_collector
 
 import (
-	"fmt"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
+	"log"
 	"sync"
 	"time"
 	//"k8s.io/apimachinery/pkg/api/errors"
@@ -33,7 +33,7 @@ const fetchMetricsInterval = 30 * time.Second
 
 func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan chan v1beta1.PodMetrics,
 	nodesMetricsChan chan v1beta1.NodeMetrics) {
-	fmt.Println("Starting metrics-collector")
+	log.Println("Starting metrics-collector")
 	clientset, err := metricsv.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
@@ -45,7 +45,7 @@ func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan cha
 		if err != nil {
 			panic(err.Error())
 		}
-		fmt.Printf("Collector: Got metrics for %d pods\n", len(podMetricsList.Items))
+		log.Printf("Collector: Got metrics for %d pods\n", len(podMetricsList.Items))
 		for _, podMetrics := range podMetricsList.Items {
 			podsMetricsChan <- podMetrics
 		}
@@ -54,7 +54,7 @@ func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan cha
 		if err != nil {
 			panic(err.Error())
 		}
-		fmt.Printf("Collector: Got metrics for %d nodes\n", len(nodeMetricsList.Items))
+		log.Printf("Collector: Got metrics for %d nodes\n", len(nodeMetricsList.Items))
 		for _, nodeMetrics := range nodeMetricsList.Items {
 			nodesMetricsChan <- nodeMetrics
 		}
