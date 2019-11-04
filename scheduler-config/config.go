@@ -9,6 +9,10 @@ import (
 
 const SchedulerName = "type-aware-scheduler"
 const NumberOfTaskTypes = 2
+const InfluxDBUsernameEnvKey = "INFLUXDB_USERNAME"
+const InfluxDBPasswordEnvKey = "INFLUXDB_PASSWORD"
+const InfluxDBHostnameEnvKey = "INFLUXDB_HOST"
+const InfluxDBDatabaseEnvKey = "INFLUXDB_DATABASE"
 // TODO load number of task types from yaml configuration
 
 func GetConfigInCluster() (*rest.Config, error) {

@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/Azure/go-autorest v11.1.2+incompatible // indirect
+	github.com/influxdata/influxdb1-client v0.0.0-20190809212627-fc22c7df067e
 	k8s.io/api v0.0.0-20191010143144-fbf594f18f80
 	k8s.io/apimachinery v0.0.0-20191016225534-b1267f8c42b4
 	k8s.io/client-go v0.0.0-20191014070654-bd505ee787b2
