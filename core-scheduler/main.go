@@ -45,7 +45,7 @@ func main() {
 	defer close(podsChan)
 	defer close(quitChan)
 
-	config, err := scheduler_config.GetConfigOutOfCluster()
+	config, err := scheduler_config.GetConfigInCluster()
 	if err != nil {
 		panic(err.Error())
 	}

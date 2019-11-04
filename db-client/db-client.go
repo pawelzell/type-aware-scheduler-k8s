@@ -1,4 +1,4 @@
-package main
+package db_client
 
 import (
 	"fmt"
@@ -16,16 +16,33 @@ type DBClient struct {
 	database string
 }
 
+func NewDBClientFromLocalConfig() (DBClient, error) {
+	addr := "http://" + os.Getenv(scheduler_config.InfluxDBHostnameEnvKey) + ":8086"
+	username := os.Getenv(scheduler_config.InfluxDBUsernameEnvKey)
+	password := os.Getenv(scheduler_config.InfluxDBPasswordEnvKey)
+	database := os.Getenv(scheduler_config.InfluxDBDatabaseEnvKey)
+	return NewDBClient(addr, username, password, database)
+}
+
 func NewDBClient(addr string, username string, password string, database string) (r DBClient, err error) {
-	// TODO get addr, user, password from environment
 	c, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr: addr,
 		Username: username,
 		Password: password,
 	})
-	if err == nil {
-		r = DBClient{c, database}
+	if err != nil {
+		return
 	}
+	q := client.Query{Command: "create DATABASE " + database}
+	response, err := c.Query(q)
+	if err != nil  {
+		return
+	}
+	if response.Error() != nil {
+		err = response.Error()
+		return
+	}
+	r = DBClient{c, database}
 	return
 }
 
@@ -73,21 +90,25 @@ func addNodeMetrics(node v1beta1.NodeMetrics, bp client.BatchPoints) (err error)
 	return
 }
 
-func (c *DBClient) SavePodMetrics(pods v1beta1.PodMetricsList) (err error) {
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+func (c *DBClient) SavePodMetrics(pods *v1beta1.PodMetricsList) (err error) {
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: c.database,
 		Precision: "s",
 	})
+	if err != nil {
+		return
+	}
 	for _, pod := range pods.Items {
 		err = addPodMetrics(pod, bp)
 		if err != nil {
 			return
 		}
 	}
+	log.Printf("Batch points collection has %d points\n", len(bp.Points()))
 	return c.client.Write(bp)
 }
 
-func (c *DBClient) SaveNodeMetrics(nodes v1beta1.NodeMetricsList) (err error) {
+func (c *DBClient) SaveNodeMetrics(nodes *v1beta1.NodeMetricsList) (err error) {
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: c.database,
 		Precision: "s",
@@ -98,6 +119,7 @@ func (c *DBClient) SaveNodeMetrics(nodes v1beta1.NodeMetricsList) (err error) {
 			return
 		}
 	}
+	log.Printf("Batch points collection has %d points\n", len(bp.Points()))
 	return c.client.Write(bp)
 }
 
@@ -126,30 +148,11 @@ func addSampleDatapoint(c client.Client) {
 	log.Printf("Sample datapoint added\n")
 }
 
-func main() {
-	log.Printf("Starting db client test\n")
-	time.Sleep(5 * time.Second)
-	//10.0.150.128
-	addr := "http://" + os.Getenv(scheduler_config.InfluxDBHostnameEnvKey) + ":8086"
-	username := os.Getenv(scheduler_config.InfluxDBUsernameEnvKey)
-	password := os.Getenv(scheduler_config.InfluxDBPasswordEnvKey)
-	database := os.Getenv(scheduler_config.InfluxDBDatabaseEnvKey)
-	log.Printf("config: %s %s %s %s\n", addr, username, password, database)
-	time.Sleep(5 * time.Second)
-	c, err := NewDBClient(addr, username, password, database)
-	log.Printf("Client created\n")
-	time.Sleep(5 * time.Second)
+func test() {
+	c, err := NewDBClientFromLocalConfig()
 	if err != nil {
 		log.Fatalln("Error creating InfluxDB Client: ", err.Error())
 	}
-	log.Printf("Client created successfully\n")
-	time.Sleep(5 * time.Second)
-	q := client.Query{Command: "create DATABASE " + database}
-	r, err := c.client.Query(q)
-	if err == nil && r.Error() == nil {
-		log.Println(r.Results)
-	}
-	time.Sleep(5 * time.Second)
 	//defer c.client.Close()
 	for {
 		fmt.Printf("Trying to add sample\n")

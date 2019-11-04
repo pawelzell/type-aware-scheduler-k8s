@@ -23,6 +23,8 @@ import (
 	"log"
 	"sync"
 	"time"
+	db_client "type-aware-scheduler/db-client"
+
 	//"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	//"k8s.io/client-go/kubernetes"
@@ -38,6 +40,10 @@ func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan cha
 	if err != nil {
 		panic(err.Error())
 	}
+	dbClient, err := db_client.NewDBClientFromLocalConfig()
+	if err != nil {
+		panic(err.Error())
+	}
 	for {
 		// TODO: handle pods and nodes with the same generic code
 		// PODS
@@ -46,6 +52,10 @@ func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan cha
 			panic(err.Error())
 		}
 		log.Printf("Collector: Got metrics for %d pods\n", len(podMetricsList.Items))
+		err = dbClient.SavePodMetrics(podMetricsList)
+		if err != nil {
+			panic(err.Error())
+		}
 		for _, podMetrics := range podMetricsList.Items {
 			podsMetricsChan <- podMetrics
 		}
@@ -55,6 +65,10 @@ func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan cha
 			panic(err.Error())
 		}
 		log.Printf("Collector: Got metrics for %d nodes\n", len(nodeMetricsList.Items))
+		err = dbClient.SaveNodeMetrics(nodeMetricsList)
+		if err != nil {
+			panic(err.Error())
+		}
 		for _, nodeMetrics := range nodeMetricsList.Items {
 			nodesMetricsChan <- nodeMetrics
 		}
