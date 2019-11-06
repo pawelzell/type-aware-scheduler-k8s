@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: type-aware-scheduler
+  labels:
+    app: type-aware-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: type-aware-scheduler
+  template:
+    metadata:
+      labels:
+        app: type-aware-scheduler
+    spec:
+      serviceAccountName: type-aware-scheduler
+      containers:
+      - name: type-aware-scheduler
+        image: type-aware-scheduler:latest
+        imagePullPolicy: Never
+        envFrom:
+        - secretRef:
+            name: influxdb-creds
+
