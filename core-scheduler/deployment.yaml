@@ -22,4 +22,5 @@ spec:
         envFrom:
         - secretRef:
             name: influxdb-creds
+      nodeName: kind-control-plane
 

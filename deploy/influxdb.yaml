@@ -4,8 +4,6 @@ metadata:
   labels:
     app: influxdb
   name: influxdb
-  namespace: default
-  resourceVersion: "2999"
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -36,6 +34,7 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/influxdb
           name: var-lib-influxdb
+      nodeName: kind-control-plane
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
