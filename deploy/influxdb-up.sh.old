@@ -1,0 +1,11 @@
+#TODO password manage
+kubectl create secret generic influxdb-creds  --from-literal=INFLUXDB_DATABASE=type_aware_scheduler --from-literal=INFLUXDB_USERNAME=root --from-literal=INFLUXDB_PASSWORD=root --from-literal=INFLUXDB_HOST=influxdb &&
+  kubectl create -f influxdb-pvc.yaml &&
+  kubectl apply -f influxdb.yaml &&
+  kubectl expose deployment influxdb --port=8086 --target-port=8086 --protocol=TCP --type=ClusterIP &&
+  kubectl create secret generic grafana-creds --from-literal=GF_SECURITY_ADMIN_USER=admin --from-literal=GF_SECURITY_ADMIN_PASSWORD=graphsRcool &&
+  kubectl create configmap grafana-config --from-file=influxdb-datasource.yml=influxdb-datasource.yml --from-file=grafana-dashboard-provider.yml=grafana-dashboard-provider.yml &&
+  kubectl apply -f grafana.yaml &&
+  kubectl expose deployment grafana --type=NodePort --port=3000
+#kubectl expose deployment grafana --type=LoadBalancer --port=80 --target-port=3000 --protocol=TCP
+

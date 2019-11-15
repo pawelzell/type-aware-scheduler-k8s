@@ -57,7 +57,7 @@ func formatMetricName(ss ...string) string {
 func addMetricPoint(metricName string, quantity int64, timestamp time.Time, bp client.BatchPoints) (err error) {
 	tags := map[string]string{}
 	fields := map[string]interface{}{
-		"quantity": quantity,
+		"value": quantity,
 	}
 	pt, err := client.NewPoint(metricName, tags, fields, timestamp)
 	if err == nil {
