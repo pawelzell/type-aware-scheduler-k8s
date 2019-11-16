@@ -29,16 +29,16 @@ func BindPodToNode(id PodId, nodeName string) error {
 	return nil
 }
 
-func GetNodesForScheduling() []string {
+func GetNodesForScheduling() []NodeData {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	result := []string{}
-	for name, _ := range nodeLookup {
+	result := []NodeData{}
+	for name, node := range nodeLookup {
 		// TODO better way to filter
 		if strings.HasSuffix(name, "control-plane") {
 			continue
 		}
-		result = append(result, name)
+		result = append(result, node)
 	}
 	return result
 }

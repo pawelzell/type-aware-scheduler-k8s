@@ -82,7 +82,7 @@ func handlePodAdd(pod *v1.Pod) {
 		log.Fatal("Trying to add pod that is already in the system %s\n", PodIdString(podId))
 		return
 	}
-	taskInfo, err := interference.PredictPodInterferenceInfo(pod)
+	taskInfo, err := interference.PredictPodInfo(pod)
 	if err != nil {
 		log.Fatalf("Failed to predict interference info %s\n", PodIdString(podId))
 	}
@@ -132,7 +132,7 @@ func handleNodeAdd(node *v1.Node) {
 		return
 	}
 	nodeLookup[node.Name] = NodeData {
-		TypeToLoad: new([scheduler_config.NumberOfTaskTypes]float32)[:],
+		TypeToLoad: new([scheduler_config.NumberOfTaskTypes]float64)[:],
 		Data: node.DeepCopy(),
 	}
 }
@@ -166,7 +166,7 @@ func handleNodeUpdate(oldObj interface{}, newObj interface{}) {
 	if found {
 		newNodeData.TypeToLoad = oldNodeData.TypeToLoad
 	} else {
-		newNodeData.TypeToLoad = new([scheduler_config.NumberOfTaskTypes]float32)[:]
+		newNodeData.TypeToLoad = new([scheduler_config.NumberOfTaskTypes]float64)[:]
 		log.Fatal("Trying to update node that cannot be found in system %s\n", oldNode.Name)
 	}
 	nodeLookup[newNode.Name] = newNodeData

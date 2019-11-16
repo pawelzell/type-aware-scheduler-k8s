@@ -7,10 +7,14 @@ import (
 	"sync"
 )
 
-type InterferenceInfo struct {
+type PodInfo struct {
 	TaskType uint32
-	Load float32
+	Load float64
 }
+
+type CoefficientsMatrix [][]float64
+
+var Coefficients = CoefficientsMatrix{{1., 2.}, {2., 1.}}
 
 const testLog = false
 
@@ -41,7 +45,12 @@ func TrainInterferenceModel(wg *sync.WaitGroup, podsChan chan v1beta1.PodMetrics
 }
 
 // TODO to implement
-func PredictPodInterferenceInfo(pod *v1.Pod) (result InterferenceInfo, err error){
-	result = InterferenceInfo {0, 100.}
+func PredictPodInfo(pod *v1.Pod) (result PodInfo, err error){
+	result = PodInfo{0, 100.}
+	return
+}
+
+func GetInterferenceCoefficients() (result CoefficientsMatrix, err error){
+	result = Coefficients
 	return
 }

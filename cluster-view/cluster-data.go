@@ -15,19 +15,19 @@ type PodId struct {
 }
 
 type PodData struct {
-	Interference interference.InterferenceInfo
+	Interference interference.PodInfo
 	Node string // Empty if node is not bound
 	Data *v1.Pod
 }
 
 type NodeData struct {
-	TypeToLoad []float32
+	TypeToLoad []float64
 	Data *v1.Node
 }
 
 type PodIdAndInterference struct {
 	Id PodId
-	Interference interference.InterferenceInfo
+	Interference interference.PodInfo
 }
 
 // Pod/Node Add/Delete/Update

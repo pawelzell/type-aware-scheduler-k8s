@@ -8,8 +8,10 @@ import (
 	"k8s.io/client-go/rest"
 	"log"
 	"math/rand"
+	"math"
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
+	"type-aware-scheduler/interference"
 	scheduler_config "type-aware-scheduler/scheduler-config"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -17,6 +19,8 @@ import (
 type Scheduler struct {
 	clientset  *kubernetes.Clientset
 	podQueue   <-chan cluster_view.PodData
+	coefficients interference.CoefficientsMatrix
+	nTaskTypes int
 }
 
 func NewScheduler(config *rest.Config, podQueue <-chan cluster_view.PodData) Scheduler {
@@ -24,10 +28,16 @@ func NewScheduler(config *rest.Config, podQueue <-chan cluster_view.PodData) Sch
 	if err != nil {
 		log.Fatal(err)
 	}
+	coefficients, err := interference.GetInterferenceCoefficients()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return Scheduler{
 		clientset:  clientset,
 		podQueue:   podQueue,
+		coefficients: coefficients,
+		nTaskTypes: scheduler_config.NumberOfTaskTypes,
 	}
 }
 
@@ -39,7 +49,9 @@ func (s *Scheduler) ScheduleOne() {
 	podData := <- s.podQueue
 	podFullName := cluster_view.PodToString(podData.Data)
 	log.Printf("Got pod for scheduling %s\n", podFullName)
-	node := MakeSchedulingDecision(podData)
+
+	nodes := cluster_view.GetNodesForScheduling()
+	node := MakeSchedulingDecision(podData, nodes, s.coefficients, s.nTaskTypes)
 
 	err := s.bindPod(podData.Data, node)
 	if err != nil {
@@ -61,13 +73,52 @@ func (s *Scheduler) ScheduleOne() {
 	log.Println(message)
 }
 
-func MakeSchedulingDecision(podData cluster_view.PodData) string {
+func computeNodeMaxCost(node cluster_view.NodeData, coefficients interference.CoefficientsMatrix, nTaskTypes int) float64 {
+	maxCost := math.Inf(-1)
+	for i := 0; i < nTaskTypes; i++ {
+		if node.TypeToLoad[i] <= 0. {
+			continue
+		}
+		typeCost := 0.
+		for j := 0; j < nTaskTypes; j++ {
+			typeCost += coefficients[i][j] * node.TypeToLoad[j]
+		}
+		maxCost = math.Max(maxCost, typeCost)
+	}
+	return maxCost
+}
+
+func MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeData, coefficients interference.CoefficientsMatrix, nTaskTypes int) string {
+	n := len(nodes)
+	if n <= 0 {
+		return ""
+	}
+	// Compute current maximum cost
+	currentCost := math.Inf(-1)
+	for _, node := range nodes {
+		currentCost = math.Max(currentCost, computeNodeMaxCost(node, coefficients, nTaskTypes))
+	}
+	bestCost := math.Inf(1)
+	bestNode := ""
+	for _, node := range nodes {
+		node.TypeToLoad[pod.Interference.TaskType] += pod.Interference.Load
+		newCost := math.Min(currentCost, computeNodeMaxCost(node, coefficients, nTaskTypes))
+		node.TypeToLoad[pod.Interference.TaskType] -= pod.Interference.Load
+		if newCost < bestCost {
+			bestCost = 	newCost
+			bestNode = node.Data.Name
+		}
+	}
+	return bestNode
+}
+
+func MakeRandomSchedulingDecision(podData cluster_view.PodData) string {
 	nodes := cluster_view.GetNodesForScheduling()
 	n := len(nodes)
 	if n <= 0 {
 		return ""
 	}
-	return nodes[rand.Intn(n)]
+	return nodes[rand.Intn(n)].Data.Name
 }
 
 func (s *Scheduler) emitEvent(p *v1.Pod, message string) error {
