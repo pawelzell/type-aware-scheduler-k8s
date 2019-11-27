@@ -32,6 +32,18 @@ nodes:
     hostPort: 10002
   - containerPort: 10003
     hostPort: 10003
+  - containerPort: 10004
+    hostPort: 10004
+  - containerPort: 10005
+    hostPort: 10005
+  - containerPort: 10006
+    hostPort: 10006
+  - containerPort: 10007
+    hostPort: 10007
+  - containerPort: 10008
+    hostPort: 10008
+  - containerPort: 10009
+    hostPort: 10009
 kubelet:
   anonymousAuth: false
   authenticationTokenWebhook: true
