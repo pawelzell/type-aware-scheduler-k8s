@@ -21,7 +21,7 @@ To run metrics-server, from deploy directory execute:
 
 `./metrics-up.sh`
 
-To create a go executable of the scheduler, build its docker image execute:
+To create a go executable of the scheduler and build its docker image execute:
 
 `cd core-scheduler && ./build.sh`
 
@@ -29,7 +29,7 @@ To deploy a pod from your local image you need to load it to the kind kubernetes
 
 `kind load docker-image type-aware-scheduler`
 
-Once cluster is set up, metrics-server is up and running, a scheduler docker image is load into cluster, you can deploy the scheduler with:
+Once cluster has been set up, metrics-server is up and running, a scheduler docker image is load into cluster, you can deploy the scheduler with:
 
 `kubectl apply -f core-scheduler/deployment.yaml`
 
