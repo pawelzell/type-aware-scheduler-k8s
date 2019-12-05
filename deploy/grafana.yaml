@@ -41,7 +41,6 @@ spec:
           name: grafana-config
           readOnly: true
           subPath: grafana-dashboard-provider.yml
-      nodeName: kind-control-plane
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

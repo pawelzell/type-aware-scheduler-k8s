@@ -34,7 +34,6 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/influxdb
           name: var-lib-influxdb
-      nodeName: kind-control-plane
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
