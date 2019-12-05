@@ -1,7 +1,6 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     app: grafana
   name: grafana
@@ -20,7 +19,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: grafana
     spec:
@@ -43,8 +41,8 @@ spec:
           name: grafana-config
           readOnly: true
           subPath: grafana-dashboard-provider.yml
-      dnsPolicy: ClusterFirst
       nodeName: kind-control-plane
+      dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
@@ -54,4 +52,3 @@ spec:
           defaultMode: 420
           name: grafana-config
         name: grafana-config
-status: {}

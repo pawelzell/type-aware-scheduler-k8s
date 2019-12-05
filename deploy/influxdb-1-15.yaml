@@ -1,7 +1,6 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     app: influxdb
   name: influxdb
@@ -19,7 +18,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: influxdb
     spec:
@@ -36,8 +34,8 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/influxdb
           name: var-lib-influxdb
-      dnsPolicy: ClusterFirst
       nodeName: kind-control-plane
+      dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
@@ -46,4 +44,3 @@ spec:
       - name: var-lib-influxdb
         persistentVolumeClaim:
           claimName: influxdb
-status: {}
