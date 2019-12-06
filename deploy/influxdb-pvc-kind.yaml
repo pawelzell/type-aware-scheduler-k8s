@@ -6,7 +6,6 @@ metadata:
     project: type-aware-scheduler
   name: influxdb
 spec:
-  storageClassName: manual
   accessModes:
   - ReadWriteOnce
   resources:
