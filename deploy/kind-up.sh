@@ -16,7 +16,7 @@ kind create cluster --config cluster-config.yaml &&
   kubectl create secret generic grafana-creds --from-literal=GF_SECURITY_ADMIN_USER=admin --from-literal=GF_SECURITY_ADMIN_PASSWORD=graphsRcool &&
   kubectl create configmap grafana-config --from-file=influxdb-datasource.yml=influxdb-datasource.yml --from-file=grafana-dashboard-provider.yml=grafana-dashboard-provider.yml &&
   kubectl apply -f grafana-1-15.yaml &&
-  kubectl expose deployment grafana --type=NodePort --port=3000 # &&
+  kubectl expose deployment grafana --type=NodePort --port=3000 &&
   echo "Loading docker image for type-aware-scheduler:" &&
   kind load docker-image type-aware-scheduler:latest
 #kubectl expose deployment grafana --type=LoadBalancer --port=80 --target-port=3000 --protocol=TCP

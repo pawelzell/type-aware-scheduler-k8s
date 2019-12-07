@@ -6,20 +6,22 @@ An experimental Kubernetes scheduler, created to test the model from the paper [
 
 I use [Kind - Kubernetes in Docker](https://github.com/kubernetes-sigs/kind) to setup testing cluster. Tested on Ubuntu 18.04.3 LTS, with kind v0.5.1. 
 
-## Running cluster and scheduler
+
+## Cluster in Kind
 
 Requirments:
 - Kind v0.5.1
 - kubectl v 1.15.3
+- [helm 2.16](https://github.com/helm/helm/releases) - to install metrics server
 - Go 1.13 
 
 To run the test cluster execute:
 
-`cd deploy && ./up.sh`
+`cd deploy && ./kind-up.sh`
 
 To run metrics-server, from deploy directory execute:
 
-`./metrics-up.sh`
+`./kind-metrics-up.sh`
 
 To create a go executable of the scheduler and build its docker image execute:
 
@@ -53,4 +55,37 @@ Then you can check logs from the scheduler by executing the following command. R
 To stop kind cluster execute:
 
 `kind delete cluster`
+
+## Cluster on bare metal
+
+I configured the cluster of two machines. I configured baati machine as a master and naan as a worker. For experiments we may want to setup a cluster additionally with dosa machine (was unavailable last time for testing).
+
+Two machines have to be in the same network. Baati and naan should be already connected via p2p openvpn, and have ip addresses 10.9.99.1 and 10.9.99.2. Swap needs to be turn off (done on baati and naan). 
+
+If a machine has less than 15% disc space left, pods deployed on it will be immediatelly evicted caused by disc pressure condition. This threshold can be changed by providing flags on kubelet creation. It should be possible to use `kubeadm init` with --config flag to do that.
+
+[CBTOOL](https://github.com/ibmcb/cbtool) benchmark tool (as well as my setup scripts) works with kubernetes 1.15.x, but not with 1.16. I assume kubeadm and kubelet version 1.15, kubectl version 1.15 or 1.16 are installed on master and worker nodes. If you want to bring more machines into kubernetes cluster you may need to follow [the guide](https://bigstep.com/blog/kubernetes-on-bare-metal-cloud).
+
+On master node execute:
+
+`sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address 10.9.99.2`
+
+Then from deploy directory execute 
+
+`./kub_post_init.sh`
+
+The output of `kubeadm init` will show you a command you need to execute on each node worker machine.
+
+To deploy influx and grafana execute:
+
+`./up.sh`.
+
+To reset the cluster on each master and worker node execute:
+
+`sudo kubeadm reset`
+
+To make metrics-server work on bare metal cluster, some simple configuration needs to be done yet.
+
+
+
 

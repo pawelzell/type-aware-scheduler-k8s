@@ -30,10 +30,6 @@ type PodIdAndInterference struct {
 	Interference interference.PodInfo
 }
 
-// Pod/Node Add/Delete/Update
-// AddBindDecision
-// Get GetNodes
-
 var clusterViewLock *sync.RWMutex
 
 var podLookup map[PodId]PodData
