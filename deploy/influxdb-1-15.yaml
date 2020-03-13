@@ -35,6 +35,7 @@ spec:
         - mountPath: /var/lib/influxdb
           name: var-lib-influxdb
       dnsPolicy: ClusterFirst
+      hostname: influxdb
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
