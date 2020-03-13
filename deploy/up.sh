@@ -6,6 +6,7 @@ kubectl apply -f serviceAccounts/default\:type-aware-scheduler &&
   kubectl create clusterrolebinding default-view --clusterrole=view --serviceaccount=default:default &&
   # Setup grafana and influxdb:
   kubectl create secret generic influxdb-creds  --from-literal=INFLUXDB_DATABASE=type_aware_scheduler --from-literal=INFLUXDB_USERNAME=root --from-literal=INFLUXDB_PASSWORD=root --from-literal=INFLUXDB_HOST=influxdb &&
+  kubectl apply -f pv1.yaml &&
   kubectl create -f influxdb-pvc.yaml &&
   kubectl apply -f influxdb-1-15.yaml &&
   kubectl expose deployment influxdb --port=8086 --target-port=8086 --protocol=TCP --type=ClusterIP &&

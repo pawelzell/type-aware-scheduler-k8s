@@ -6,9 +6,8 @@ metadata:
     project: type-aware-scheduler
   name: influxdb
 spec:
-  storageClassName: manual
   accessModes:
-  - ReadWriteOnce
+  - ReadWriteMany
   resources:
     requests:
       storage: 2Gi

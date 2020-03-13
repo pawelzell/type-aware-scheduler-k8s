@@ -66,15 +66,22 @@ If a machine has less than 15% disc space left, pods deployed on it will be imme
 
 [CBTOOL](https://github.com/ibmcb/cbtool) benchmark tool (as well as my setup scripts) works with kubernetes 1.15.x, but not with 1.16. I assume kubeadm and kubelet version 1.15, kubectl version 1.15 or 1.16 are installed on master and worker nodes. If you want to bring more machines into kubernetes cluster you may need to follow [the guide](https://bigstep.com/blog/kubernetes-on-bare-metal-cloud).
 
-On master node execute:
+### NFS setup
+To use influxdb we should configured persistent storage accessible from any machine of our cluster. 
 
-`sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address 10.9.99.2`
+To setup nfs server on baati run
+`./nfs-server-init.sh`
+Then to setup nfs client on naan run
+`./nfs-client-init.sh`
 
-Then from deploy directory execute 
+### Cluster setup
+On master node (baati) execute:
+`./cluster-master-init.sh`
 
-`./kub_post_init.sh`
+The output of this script will show you a command you need to execute on each node worker machine. The command will be simmilar to:
 
-The output of `kubeadm init` will show you a command you need to execute on each node worker machine.
+`sudo kubeadm join 10.9.99.2:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>` 
+
 
 To deploy influx and grafana execute:
 
@@ -82,10 +89,7 @@ To deploy influx and grafana execute:
 
 To reset the cluster on each master and worker node execute:
 
-`sudo kubeadm reset`
+`./cluster-reset.sh`
 
-To make metrics-server work on bare metal cluster, some simple configuration needs to be done yet.
-
-
-
+NOTE: metrics-server does not work yet on our cluster.
 
