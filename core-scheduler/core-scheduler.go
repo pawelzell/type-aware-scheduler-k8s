@@ -102,7 +102,7 @@ func MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeD
 	bestNode := ""
 	for _, node := range nodes {
 		node.TypeToLoad[pod.Interference.TaskType] += pod.Interference.Load
-		newCost := math.Min(currentCost, computeNodeMaxCost(node, coefficients, nTaskTypes))
+		newCost := math.Max(currentCost, computeNodeMaxCost(node, coefficients, nTaskTypes))
 		node.TypeToLoad[pod.Interference.TaskType] -= pod.Interference.Load
 		if newCost < bestCost {
 			bestCost = 	newCost
