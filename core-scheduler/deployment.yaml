@@ -18,7 +18,7 @@ spec:
       containers:
       - name: type-aware-scheduler
         image: pawelzell/type-aware-scheduler:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         envFrom:
         - secretRef:
             name: influxdb-creds
