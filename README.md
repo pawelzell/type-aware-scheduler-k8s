@@ -23,6 +23,14 @@ To run metrics-server, from deploy directory execute:
 
 `./kind-metrics-up.sh`
 
+You can verify that metrics-server works trying one of the following commands:
+```
+kubectl top pods
+kubectl top nodes
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/pods | jq '.'
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/nodes | jq '.'
+```
+
 To create a go executable of the scheduler and build its docker image execute:
 
 `cd core-scheduler && ./build.sh`
@@ -50,7 +58,7 @@ type-aware-scheduler-6bf7f4c766-56sjf   1/1     Running   0          4m5s
 
 Then you can check logs from the scheduler by executing the following command. Replace the name of the pod with your value obtained from the previous command.
 
-`kubectl logs type-aware-scheduler-6bf7f4c766-56sjf`
+`kubectl logs deployment/type-aware-scheduler`
 
 To stop kind cluster execute:
 
@@ -69,27 +77,39 @@ If a machine has less than 15% disc space left, pods deployed on it will be imme
 ### NFS setup
 To use influxdb we should configured persistent storage accessible from any machine of our cluster. 
 
-To setup nfs server on baati run
+To setup nfs server on baati run (from deploy directory):
 `./nfs-server-init.sh`
 Then to setup nfs client on naan run
 `./nfs-client-init.sh`
 
 ### Cluster setup
 On master node (baati) execute:
-`./cluster-master-init.sh`
+`cd deploy && ./cluster-master-init.sh`
 
-The output of this script will show you a command you need to execute on each node worker machine. The command will be simmilar to:
+The output of this script will show you a command you need to execute on each worker machine. The command will be similar to:
 
 `sudo kubeadm join 10.9.99.2:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>` 
 
-
 To deploy influx and grafana execute:
 
-`./up.sh`.
+`./up.sh`
 
+To deploy metrics-server execute:
+
+```
+git clone git@github.com:pawelzell/metrics-server.git
+cd metrics-server
+kubectl apply -f deploy/1.8+
+```
+
+Finally deploy type-aware-scheduler:
+
+`kubectl apply -f core-scheduler/deployment.yaml`
+
+
+### Cluster reset 
 To reset the cluster on each master and worker node execute:
 
 `./cluster-reset.sh`
 
-NOTE: metrics-server does not work yet on our cluster.
 
