@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+func getApplicationInstance(pod PodData) string {
+	var index = strings.LastIndex(pod.Node, "ai_")
+	if index < 0 {
+		return ""
+	}
+	return pod.Node[index:len(pod.Node)]
+}
+
 func BindPodToNode(id PodId, nodeName string) error {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
@@ -27,6 +35,19 @@ func BindPodToNode(id PodId, nodeName string) error {
 		Data:         pod.Data,
 	}
 	return nil
+}
+
+// We might want to schedule all pods from one application instance (AI) into one node.
+// If an other pod from given AI has been scheduled, returns name of its node.
+func GetNodeByApplicationInstance(pod PodData) string {
+	clusterViewLock.Lock()
+	defer clusterViewLock.Unlock()
+	for _, otherPod := range podLookup {
+		if getApplicationInstance(pod) == getApplicationInstance(otherPod) {
+			return pod.Node
+		}
+	}
+	return ""
 }
 
 func GetNodesForScheduling() []NodeData {
