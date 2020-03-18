@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
+	metrics "type-aware-scheduler/metrics-collector"
 	inter "type-aware-scheduler/interference"
 	"type-aware-scheduler/scheduler-config"
 )
@@ -50,10 +51,10 @@ func main() {
 	}
 	cluster_view.InitClusterView(config, podsChan, quitChan)
 
-	wg.Add(2) // TODO change to 3 when collect metrics enabled
+	wg.Add(3) // TODO change to 3 when collect metrics enabled
 	go inter.TrainInterferenceModel(&wg, podsMetricsChan, nodesMetricsChan)
-	fmt.Println("NOTE: CollectMetrics disabled for testing")
-	//go metrics.CollectMetrics(config, &wg, podsMetricsChan, nodesMetricsChan)
+	//fmt.Println("NOTE: CollectMetrics disabled for testing")
+	go metrics.CollectMetrics(config, &wg, podsMetricsChan, nodesMetricsChan)
 	go ClusterViewPrinter()
 	scheduler := NewScheduler(config, podsChan)
 	scheduler.Run(quitChan)

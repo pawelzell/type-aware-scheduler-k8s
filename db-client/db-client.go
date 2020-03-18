@@ -2,6 +2,7 @@ package db_client
 
 import (
 	"fmt"
+	resource_pkg "k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	client "github.com/influxdata/influxdb1-client/v2"
 	"log"
@@ -66,11 +67,20 @@ func addMetricPoint(metricName string, quantity int64, timestamp time.Time, bp c
 	return
 }
 
+func getRescaledQuantity(quantity resource_pkg.Quantity, resource string) int64 {
+	// CPU is reported as a fraction of core. Change it to millicores.
+	if resource == "cpu" {
+		return quantity.MilliValue()
+	}
+	return quantity.Value()
+}
+
 func addPodMetrics(pod v1beta1.PodMetrics, bp client.BatchPoints) (err error) {
 	for _, container := range pod.Containers {
 		for resource, quantity := range container.Usage {
 			metricName := formatMetricName("pod", pod.Namespace, pod.Name, container.Name, resource.String())
-			err = addMetricPoint(metricName, quantity.Value(), pod.Timestamp.UTC(), bp)
+			var rescaledQuantity = getRescaledQuantity(quantity, resource.String())
+			err = addMetricPoint(metricName, rescaledQuantity, pod.Timestamp.UTC(), bp)
 			if err != nil {
 				return
 			}
@@ -82,7 +92,8 @@ func addPodMetrics(pod v1beta1.PodMetrics, bp client.BatchPoints) (err error) {
 func addNodeMetrics(node v1beta1.NodeMetrics, bp client.BatchPoints) (err error) {
 	for resource, quantity := range node.Usage {
 		metricName := formatMetricName("node", node.Name, resource.String())
-		err = addMetricPoint(metricName, quantity.Value(), node.Timestamp.UTC(), bp)
+		var rescaledQuantity = getRescaledQuantity(quantity, resource.String())
+		err = addMetricPoint(metricName, rescaledQuantity, node.Timestamp.UTC(), bp)
 		if err != nil {
 			return
 		}
