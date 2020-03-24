@@ -1,3 +1,8 @@
+kHOST=`hostname`
+if [[ (($kHOST != "baati") && ($kHOST != "naan")) ]]; then
+  echo "Host $kHOST not supported, please update this script"
+  exit 1
+fi
 # Script for kubernetes v1.15
 kubectl apply -f serviceAccounts/default\:type-aware-scheduler &&
   kubectl apply -f serviceAccounts/kube-system\:type-aware-scheduler &&
@@ -6,7 +11,7 @@ kubectl apply -f serviceAccounts/default\:type-aware-scheduler &&
   kubectl create clusterrolebinding default-view --clusterrole=view --serviceaccount=default:default &&
   # Setup grafana and influxdb:
   kubectl create secret generic influxdb-creds  --from-literal=INFLUXDB_DATABASE=type_aware_scheduler --from-literal=INFLUXDB_USERNAME=root --from-literal=INFLUXDB_PASSWORD=root --from-literal=INFLUXDB_HOST=influxdb &&
-  kubectl apply -f pv1.yaml &&
+  kubectl apply -f "pv-${kHOST}.yaml" &&
   kubectl create -f influxdb-pvc.yaml &&
   kubectl apply -f influxdb-1-15.yaml &&
   kubectl expose deployment influxdb --port=8086 --target-port=8086 --protocol=TCP --type=ClusterIP &&

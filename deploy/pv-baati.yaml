@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: influxdb
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  nfs: 
+    server: 10.9.99.2
+    path: /mnt/k8s-type-aware-scheduler-baati/influxdb
+#  hostPath:
+#path: "/data/kube/pv1"
+
