@@ -82,6 +82,18 @@ To setup nfs server on baati run (from deploy directory):
 Then to setup nfs client on naan run
 `./nfs-client-init.sh`
 
+### Switching between two and one node cluster
+
+If you bootstrap k8s with naan as a master and later (after deleting this naan-based cluster) you want to join naan as a worker to the other cluster (or the other way around) you need to do one extra step. Delete cni0 and flannel.1 interfaces on naan node. Execute:
+
+```
+sudo ip link delete cni0
+sudo ip link delete flannel.1
+
+```
+
+During k8s bootstrap these interfaces are created, but they are not deleted after cluster reset. An interface created when naan is a master is different than the interface when naan is a worker. This may cause coredns pod fail to start.
+
 ### Cluster setup
 On master node (baati) execute:
 `cd deploy && ./cluster-master-init.sh`
