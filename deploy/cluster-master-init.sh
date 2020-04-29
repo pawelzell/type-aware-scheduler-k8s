@@ -1,15 +1,12 @@
 kHOST=`hostname`
-if [[ $kHOST == "baati" ]]; then
-  kIP=10.9.99.2
-elif [[ $kHOST == "naan" ]]; then
-  kIP=10.9.99.1
-else
-  echo "Hostname $kHOST not supported, please update this script"
+if [[ ( $kHOST != "baati" ) && ( $kHOST != "naan" ) ]]; then
+  echo "Hostname $kHOST not supported, please create kubeadm-config file for new host"
   exit 1
 fi
-echo "Detected ip $kIP"
+CONFIG_FILE="kubeadm-${kHOST}.yaml"
+echo "Will use the config file: $CONFIG_FILE"
 
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address $kIP || exit 1
+sudo kubeadm init --config $CONFIG_FILE || exit 1
 
 
 mkdir -p $HOME/.kube
