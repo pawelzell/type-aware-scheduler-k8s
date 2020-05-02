@@ -1,5 +1,6 @@
+#!/bin/bash
 kHOST=`hostname`
-if [[ ( $kHOST != "baati" ) && ( $kHOST != "naan" ) && ( $kHOST != "dosa" )]]; then
+if [[ ( $kHOST != "baati" ) && ( $kHOST != "naan" ) && ( $kHOST != "dosa" ) ]]; then
   echo "Hostname $kHOST not supported, please create kubeadm-config file for new host"
   exit 1
 fi

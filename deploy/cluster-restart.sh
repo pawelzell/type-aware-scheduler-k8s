@@ -1,3 +1,4 @@
+#!/bin/bash
 kMETRICS_SERVER=../../metrics-server
 ./cluster-reset.sh
 ./cluster-master-init.sh && 
