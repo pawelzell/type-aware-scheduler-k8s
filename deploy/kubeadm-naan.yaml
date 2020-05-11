@@ -74,7 +74,7 @@ eventBurst: 10
 eventRecordQPS: 5
 evictionHard:
   imagefs.available: 2%
-  memory.available: 100Mi
+  memory.available: 2Gi
   nodefs.available: 2%
   nodefs.inodesFree: 1%
 evictionPressureTransitionPeriod: 5m0s
