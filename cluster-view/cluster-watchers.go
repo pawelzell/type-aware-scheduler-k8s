@@ -71,6 +71,10 @@ func handlePodChange(fn podHanderFn) func(obj interface{}) {
 	}
 }
 
+func shouldSchedule(pod *v1.Pod) bool {
+	return pod.Spec.NodeName == "" && pod.Spec.SchedulerName == scheduler_config.SchedulerName
+}
+
 // TODO handle pods with other schedulers
 func handlePodAdd(pod *v1.Pod) {
 	clusterViewLock.Lock()
@@ -82,16 +86,22 @@ func handlePodAdd(pod *v1.Pod) {
 		log.Fatal("Trying to add pod that is already in the system %s\n", PodIdString(podId))
 		return
 	}
-	taskInfo, err := interference.PredictPodInfo(pod)
-	if err != nil {
-		log.Fatalf("Failed to predict interference info %s\n", PodIdString(podId))
-	}
 	podData := PodData {
-		Interference: taskInfo,
+		Interference: interference.PodInfo{
+			TaskType: 0,
+			Load:     0,
+		},
 		Data: pod.DeepCopy(),
 	}
+	if shouldSchedule(pod) {
+		taskInfo, err := interference.PredictPodInfo(pod)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		podData.Interference = taskInfo
+	}
 	podLookup[podId] = podData
-	if pod.Spec.NodeName == "" && pod.Spec.SchedulerName == scheduler_config.SchedulerName {
+	if shouldSchedule(pod) {
 		podToBeScheduled <- podData
 	}
 }

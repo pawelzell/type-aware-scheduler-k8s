@@ -1,10 +1,13 @@
 package interference
 
 import (
+	"errors"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
+	"strings"
 	"sync"
+	scheduler_config "type-aware-scheduler/scheduler-config"
 )
 
 type PodInfo struct {
@@ -59,9 +62,26 @@ func TrainInterferenceModel(wg *sync.WaitGroup, podsChan chan v1beta1.PodMetrics
 	}
 }
 
-// TODO to implement
 func PredictPodInfo(pod *v1.Pod) (result PodInfo, err error){
 	result = PodInfo{0, 1.}
+	components := strings.Split(pod.Name, "-")
+	if len(components) < 5 {
+		err = errors.New(fmt.Sprintf("Interference: ERROR - pod name has unexpected number of components %d\n",
+			len(components)))
+		return
+	}
+	role := components[4]
+	t, found := scheduler_config.RoleToType[role]
+	if !found {
+		err = errors.New(fmt.Sprintf("Interference: ERROR - unknown pod role %s\n", role))
+		return
+	}
+	typeId, found := scheduler_config.TypeStringToId[t]
+	if !found {
+		err = errors.New(fmt.Sprintf("Interference: ERROR - unknown pod type %s\n", t))
+		return
+	}
+	result.TaskType = typeId
 	return
 }
 
