@@ -17,6 +17,11 @@ type DBClient struct {
 	database string
 }
 
+type Datapoint struct {
+	Key string
+	Value float64
+}
+
 func NewDBClientFromLocalConfig() (DBClient, error) {
 	addr := "http://" + os.Getenv(scheduler_config.InfluxDBHostnameEnvKey) + ":8086"
 	username := os.Getenv(scheduler_config.InfluxDBUsernameEnvKey)
@@ -115,7 +120,7 @@ func (c *DBClient) SavePodMetrics(pods *v1beta1.PodMetricsList) (err error) {
 			return
 		}
 	}
-	log.Printf("Batch points collection has %d points\n", len(bp.Points()))
+	//log.Printf("Batch points collection has %d points\n", len(bp.Points()))
 	return c.client.Write(bp)
 }
 
@@ -130,7 +135,26 @@ func (c *DBClient) SaveNodeMetrics(nodes *v1beta1.NodeMetricsList) (err error) {
 			return
 		}
 	}
-	log.Printf("Batch points collection has %d points\n", len(bp.Points()))
+	//log.Printf("Batch points collection has %d points\n", len(bp.Points()))
+	return c.client.Write(bp)
+}
+
+func (c *DBClient) InsertDatapoints(measurement string, datapoints []Datapoint) (err error) {
+	tags := map[string]string{}
+	fields := map[string]interface{}{}
+	for _, datapoint := range datapoints {
+		fields[datapoint.Key] = datapoint.Value
+	}
+	pt, err := client.NewPoint(measurement, tags, fields, time.Now())
+	if err != nil {
+		log.Println("Error creating data point: ", err.Error())
+		panic(err.Error())
+	}
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  "type_aware_scheduler",
+		Precision: "s",
+	})
+	bp.AddPoint(pt)
 	return c.client.Write(bp)
 }
 

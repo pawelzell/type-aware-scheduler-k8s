@@ -17,7 +17,7 @@ spec:
       serviceAccountName: type-aware-scheduler
       containers:
       - name: type-aware-scheduler
-        image: pawelzell/type-aware-scheduler:latest
+        image: pawelzell/type-aware-scheduler
         imagePullPolicy: Always
         envFrom:
         - secretRef:

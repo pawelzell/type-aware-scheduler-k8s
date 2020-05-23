@@ -8,13 +8,28 @@ import (
 )
 
 type PodInfo struct {
-	TaskType uint32
+	TaskType int
 	Load float64
 }
 
-type CoefficientsMatrix [][]float64
+type CoefficientsMatrix = [][]float64
 
-var Coefficients = CoefficientsMatrix{{1., 2.}, {2., 1.}}
+type ModelType struct {
+	NTaskTypes int
+	NodeToCoefficients map[string]CoefficientsMatrix
+}
+
+var Model = ModelType{
+	4, map[string]CoefficientsMatrix{ // baati
+		"kind-worker": CoefficientsMatrix{{0.09236406129745652,0.06968222664414211,0.1647130881065321,0.20015221017304366},
+			{0.0466460482266046,0.05732161544142513,0.10657494482534081,0.10810948076749577},
+			{0.05359758455154095,0.062162787980730924,0.10183621207551628,0.18190055622891266},
+			{0.03417224949552764,0.027716794752997563,0.05988714098792437,0.05459264158814841},},
+		"kind-control-plane": CoefficientsMatrix{{0.0437716396715501,0.05309571481979834,0.05778327994778269,0.0478036633107744},
+			{0.13532284678468662,0.10337024868620512,0.1644856778556154,0.133996920283637}, // naan
+			{0.030551469559096957,0.025204660199400788,0.2617647088479882,0.04293269861596552},
+			{0.03313376324592641,0.03302772683749356,0.03915595291608828,0.0434928149486718},},
+}}
 
 const testLog = false
 
@@ -46,11 +61,11 @@ func TrainInterferenceModel(wg *sync.WaitGroup, podsChan chan v1beta1.PodMetrics
 
 // TODO to implement
 func PredictPodInfo(pod *v1.Pod) (result PodInfo, err error){
-	result = PodInfo{0, 100.}
+	result = PodInfo{0, 1.}
 	return
 }
 
-func GetInterferenceCoefficients() (result CoefficientsMatrix, err error){
-	result = Coefficients
+func GetInterferenceModel() (result ModelType, err error){
+	result = Model
 	return
 }

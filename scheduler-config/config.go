@@ -8,12 +8,14 @@ import (
 )
 
 const SchedulerName = "type-aware-scheduler"
-const NumberOfTaskTypes = 2
 const InfluxDBUsernameEnvKey = "INFLUXDB_USERNAME"
 const InfluxDBPasswordEnvKey = "INFLUXDB_PASSWORD"
 const InfluxDBHostnameEnvKey = "INFLUXDB_HOST"
 const InfluxDBDatabaseEnvKey = "INFLUXDB_DATABASE"
+const OfflineExpConfigPath = "exp"
 // TODO load number of task types from yaml configuration
+const NumberOfTaskTypes = 4
+var TypeStringToId = map[string]int{"redis_ycsb": 0, "wrk": 1, "hadoop": 2, "linpack": 3}
 
 func GetConfigInCluster() (*rest.Config, error) {
 	return rest.InClusterConfig()

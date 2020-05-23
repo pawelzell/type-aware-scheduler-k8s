@@ -6,9 +6,10 @@ import (
 	"sync"
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
-	metrics "type-aware-scheduler/metrics-collector"
 	inter "type-aware-scheduler/interference"
-	"type-aware-scheduler/scheduler-config"
+	metrics "type-aware-scheduler/metrics-collector"
+	core "type-aware-scheduler/core-scheduler"
+	scheduler_config "type-aware-scheduler/scheduler-config"
 )
 
 type NodeTest struct {
@@ -45,6 +46,15 @@ func main() {
 	defer close(podsChan)
 	defer close(quitChan)
 
+	offlineExpConfigChan := make(chan scheduler_config.OfflineSchedulingExperiment)
+	defer close(offlineExpConfigChan)
+	offlineExpConfigReader := scheduler_config.NewConfigReader(scheduler_config.OfflineExpConfigPath,
+		offlineExpConfigChan)
+	offlineSchedulerDecisionMaker := core.NewOfflineSchedulingDecisionMaker(offlineExpConfigChan)
+	go offlineSchedulerDecisionMaker.RunExperimentWatcher()
+	go offlineExpConfigReader.Run()
+
+
 	config, err := scheduler_config.GetConfigInCluster()
 	if err != nil {
 		panic(err.Error())
@@ -53,10 +63,9 @@ func main() {
 
 	wg.Add(3) // TODO change to 3 when collect metrics enabled
 	go inter.TrainInterferenceModel(&wg, podsMetricsChan, nodesMetricsChan)
-	//fmt.Println("NOTE: CollectMetrics disabled for testing")
 	go metrics.CollectMetrics(config, &wg, podsMetricsChan, nodesMetricsChan)
 	go ClusterViewPrinter()
-	scheduler := NewScheduler(config, podsChan)
+	scheduler := core.NewScheduler(config, podsChan, &offlineSchedulerDecisionMaker)
 	scheduler.Run(quitChan)
 	wg.Wait()
 }
