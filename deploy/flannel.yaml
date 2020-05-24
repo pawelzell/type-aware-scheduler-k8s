@@ -193,7 +193,7 @@ spec:
         args:
         - --ip-masq
         - --kube-subnet-mgr
-        - --iface=10.9.99.2
+        - --iface=10.2.1.93
         resources:
           requests:
             cpu: "100m"
@@ -292,7 +292,7 @@ spec:
         args:
         - --ip-masq
         - --kube-subnet-mgr
-        - --iface=10.8.99.2
+        - --iface=10.2.1.91
         resources:
           requests:
             cpu: "100m"
