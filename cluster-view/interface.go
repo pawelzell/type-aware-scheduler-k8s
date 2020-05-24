@@ -8,21 +8,26 @@ import (
 	"strings"
 )
 
-func getApplicationInstance(pod PodData) string {
-	var index = strings.LastIndex(pod.Node, "ai_")
+func getApplicationInstance(pod PodData) (result string, err error) {
+	podName := pod.Data.Name
+	var index = strings.LastIndex(podName, "ai-")
 	if index < 0 {
-		return ""
+		err = errors.New(fmt.Sprintf("ai- substring not found in pod name %s", podName))
+		return
 	}
-	return pod.Node[index:len(pod.Node)]
+	result = podName[index:]
+	return
 }
 
-func BindPodToNode(id PodId, nodeName string) error {
+func BindPodToNode(id PodId, load float64, nodeName string) error {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
 	pod, found := podLookup[id]
 	if !found {
 		return errors.New("Pod did not found")
 	}
+	pod.Interference.Load = load
+	podLookup[id] = pod
 
 	node, found := nodeLookup[nodeName]
 	if !found {
@@ -42,9 +47,21 @@ func BindPodToNode(id PodId, nodeName string) error {
 func GetNodeByApplicationInstance(pod PodData) string {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	for _, otherPod := range podLookup {
-		if getApplicationInstance(pod) == getApplicationInstance(otherPod) {
-			return pod.Node
+	podId := PodId {pod.Data.Name, pod.Data.Namespace}
+	podAI, err := getApplicationInstance(pod)
+	if err != nil {
+		return ""
+	}
+	for otherPodId, otherPod := range podLookup {
+		if podId == otherPodId {
+			continue
+		}
+		otherPodAI, err := getApplicationInstance(otherPod)
+		if err != nil {
+			continue
+		}
+		if (podAI == otherPodAI) && (otherPod.Node != "" ) {
+			return otherPod.Node
 		}
 	}
 	return ""

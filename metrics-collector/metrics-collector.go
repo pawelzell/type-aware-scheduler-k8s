@@ -48,29 +48,31 @@ func CollectMetrics(config *rest.Config, wg *sync.WaitGroup, podsMetricsChan cha
 		// TODO: handle pods and nodes with the same generic code
 		// PODS
 		podMetricsList, err := clientset.MetricsV1beta1().PodMetricses("").List(metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-		log.Printf("Collector: Got metrics for %d pods\n", len(podMetricsList.Items))
-		err = dbClient.SavePodMetrics(podMetricsList)
-		if err != nil {
-			panic(err.Error())
-		}
-		for _, podMetrics := range podMetricsList.Items {
-			podsMetricsChan <- podMetrics
+		if err == nil {
+			//log.Printf("Collector: Got metrics for %d pods\n", len(podMetricsList.Items))
+			err = dbClient.SavePodMetrics(podMetricsList)
+			if err != nil {
+				log.Println("metrics-collector: ERROR - failed to save pod metrics to database")
+			}
+			for _, podMetrics := range podMetricsList.Items {
+				podsMetricsChan <- podMetrics
+			}
+		} else {
+			log.Println("metrics-collector: ERROR - failed to get pods metrics from kubernetes api")
 		}
 		// NODES
 		nodeMetricsList, err := clientset.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-		log.Printf("Collector: Got metrics for %d nodes\n", len(nodeMetricsList.Items))
-		err = dbClient.SaveNodeMetrics(nodeMetricsList)
-		if err != nil {
-			panic(err.Error())
-		}
-		for _, nodeMetrics := range nodeMetricsList.Items {
-			nodesMetricsChan <- nodeMetrics
+		if err == nil {
+			//log.Printf("Collector: Got metrics for %d nodes\n", len(nodeMetricsList.Items))
+			err = dbClient.SaveNodeMetrics(nodeMetricsList)
+			if err != nil {
+				log.Println("metrics-collector: ERROR - failed to save nodes metrics to database")
+			}
+			for _, nodeMetrics := range nodeMetricsList.Items {
+				nodesMetricsChan <- nodeMetrics
+			}
+		} else {
+			log.Println("metrics-collector: ERROR - failed to get nodes metrics from kubernetes api")
 		}
 		time.Sleep(fetchMetricsInterval)
 	}

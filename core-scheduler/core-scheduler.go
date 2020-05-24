@@ -10,14 +10,14 @@ import (
 	"log"
 	"math"
 	"math/rand"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
-	scheduler_config "type-aware-scheduler/scheduler-config"
 	"type-aware-scheduler/interference"
+	scheduler_config "type-aware-scheduler/scheduler-config"
 )
+
+const loadEps = 0.000001
 
 type Scheduler struct {
 	clientset  *kubernetes.Clientset
@@ -83,19 +83,6 @@ func NewOfflineSchedulingDecisionMaker(updateChan <-chan scheduler_config.Offlin
 	}
 }
 
-func getAINumberFromPod(pod *v1.Pod) int {
-	aiSubstring := "ai-"
-	i := strings.LastIndex(pod.Name, aiSubstring)
-	if i < 0 {
-		return -1
-	}
-	result, err := strconv.Atoi(pod.Name[i+len(aiSubstring):])
-	if err != nil {
-		return -1
-	}
-	return result
-}
-
 func (m *OfflineSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeData) string {
 	if m.SchedulingDesiredState == nil{
 		return ""
@@ -106,7 +93,7 @@ func (m *OfflineSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view
 	typeId := pod.Interference.TaskType
 	choosenNode := ""
 	for _, nodeData := range nodes {
-		if nodeData.TypeToLoad[typeId] < m.SchedulingDesiredState[nodeData.Data.Name][typeId] {
+		if nodeData.TypeToLoad[typeId] + loadEps < m.SchedulingDesiredState[nodeData.Data.Name][typeId] {
 			choosenNode = nodeData.Data.Name
 			break
 		}
@@ -261,10 +248,12 @@ func (s *Scheduler) ScheduleOne() {
 	log.Printf("Got pod for scheduling %s\n", podFullName)
 
 	node := cluster_view.GetNodeByApplicationInstance(podData)
+	newLoad := 1.
 	if node == "" {
 		nodes := cluster_view.GetNodesForScheduling()
 		node = s.DecisionMaker.MakeSchedulingDecision(podData, nodes)
 	} else {
+		newLoad = 0.
 		log.Printf("Placing pod %s on the same node %s as an other pod from the same application instance\n",
 			podData.Data.Name, node)
 	}
@@ -274,7 +263,7 @@ func (s *Scheduler) ScheduleOne() {
 		return
 	}
 	podId := cluster_view.PodId{podData.Data.Name, podData.Data.Namespace}
-	err = cluster_view.BindPodToNode(podId, node)
+	err = cluster_view.BindPodToNode(podId, newLoad, node)
 	if err != nil {
 		log.Println("failed to bind pod in cluster view", err.Error())
 		return

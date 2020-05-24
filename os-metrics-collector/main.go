@@ -64,16 +64,16 @@ func handleCollectOSMetricsResponse(db db_client.DBClient, resp *http.Response) 
 		}
 		datapoints = append(datapoints, datapoint)
 	}
-	for _, datapoint := range datapoints {
-		log.Printf("Datapoint %s: %f", datapoint.Key, datapoint.Value)
-		continue
-	}
-	err := db.InsertDatapoints(osMetricsMeasurementName, datapoints)
-	if err != nil {
-		panic(err)
-	}
 	if err := scanner.Err(); err != nil {
 		log.Printf("Error while scanning response body.\n")
+	}
+	//for _, datapoint := range datapoints {
+	//	log.Printf("Datapoint %s: %f", datapoint.Key, datapoint.Value)
+	//}
+	err := db.InsertDatapoints(osMetricsMeasurementName, datapoints)
+	if err != nil {
+		log.Printf("os-metrics-collector: ERROR - failed to insert metrics datapoints to database %s\n",
+			err.Error())
 	}
 }
 
@@ -82,7 +82,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// TODO filter condition
 	for {
 		resp, err := http.Get(collectOSMetricsEndpointURL)
 		if err == nil {

@@ -69,7 +69,6 @@ func interferenceTest() {
 	schedule, cost = solver.Solve()
 	fmt.Println(cost)
 	fmt.Println(schedule)
-
 }
 
 func testParse(path string) {
@@ -101,6 +100,7 @@ func testReader(path string) {
 		fmt.Println(exp.TaskTypesIds)
 	}
 }
+
 
 func main() {
 	//path := "exp"

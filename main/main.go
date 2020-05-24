@@ -35,7 +35,7 @@ func test() {
 }
 
 func main() {
-	fmt.Println("Starting core scheduler")
+	fmt.Println("Starting core scheduler v2")
 	var wg sync.WaitGroup
 	podsMetricsChan := make(chan v1beta1.PodMetrics, 100)
 	nodesMetricsChan := make(chan v1beta1.NodeMetrics, 100)

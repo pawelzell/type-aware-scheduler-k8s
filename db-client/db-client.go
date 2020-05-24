@@ -148,7 +148,7 @@ func (c *DBClient) InsertDatapoints(measurement string, datapoints []Datapoint) 
 	pt, err := client.NewPoint(measurement, tags, fields, time.Now())
 	if err != nil {
 		log.Println("Error creating data point: ", err.Error())
-		panic(err.Error())
+		return
 	}
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  "type_aware_scheduler",
