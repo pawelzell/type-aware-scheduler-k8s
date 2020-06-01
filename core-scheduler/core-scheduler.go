@@ -113,6 +113,20 @@ func computeTypeTaskCount(model interference.ModelType, exp scheduler_config.Off
 	return result
 }
 
+func checkResourceConstraints(model interference.ModelType, nodeLookup []string, schedule map[string][]float64) bool {
+	for _, nodeName := range nodeLookup {
+		nodeSchedule := schedule[nodeName]
+		resourceRequest := 0.
+		for i := 0; i < model.NTaskTypes; i++ {
+			resourceRequest += model.TypeToResourceRequests[i] * nodeSchedule[i]
+		}
+		if resourceRequest > model.NodeToResourceCapacity[nodeName] {
+			return false
+		}
+	}
+	return true
+}
+
 func ComputeScheduleCost(model interference.ModelType, nodeLookup []string, schedule map[string][]float64) float64 {
 	maxCost := math.Inf(-1)
 	for _, nodeName := range nodeLookup {
@@ -145,6 +159,9 @@ func copySchedule(dest map[string][]float64, src map[string][]float64, nodeLooku
 
 func (s *OptimalScheduleSolver) solveHelper(curType int, curNode int) {
 	if curType >= s.typeCount {
+		if !checkResourceConstraints(s.model, s.nodeLookup, s.curSchedule) {
+			return // Tasks do not fit in nodes resource limits
+		}
 		curCost := ComputeScheduleCost(s.model, s.nodeLookup, s.curSchedule)
 		//log.Printf("Compute schedule cost %f\n", curCost)
 		if curCost < s.bestScheduleCost {
@@ -171,6 +188,9 @@ func (s *OptimalScheduleSolver) solveHelper(curType int, curNode int) {
 
 func (s *OptimalScheduleSolver) Solve() (map[string][]float64, float64) {
 	s.solveHelper(0, 0)
+	if s.bestScheduleCost >= math.Inf(1.) {
+		panic("No schedule found")
+	}
 	return s.bestSchedule, s.bestScheduleCost
 }
 

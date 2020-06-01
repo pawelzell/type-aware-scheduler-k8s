@@ -38,6 +38,8 @@ func interferenceTest() {
 		2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 2}, {2, 1.}},
 			"naan": interference.CoefficientsMatrix{{1., 2}, {2, 1.}}},
+			[]float64{0., 0.},
+			map[string]float64{"baati": 1., "naan": 1.},
 	}
 	experiment := scheduler_config.OfflineSchedulingExperiment{"twoClashing",
 		[]int{0, 1, 0, 1}}
@@ -47,6 +49,8 @@ func interferenceTest() {
 		2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 0.5}, {0.5, 1.}},
 			"naan": interference.CoefficientsMatrix{{1., 0.5}, {0.5, 1.}}},
+		[]float64{0., 0.},
+		map[string]float64{"baati": 1., "naan": 1.},
 	}
 	experiment = scheduler_config.OfflineSchedulingExperiment{"better2Mix",
 		[]int{0, 1, 0, 1}}
@@ -56,6 +60,8 @@ func interferenceTest() {
 		2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 0.5}, {0.5, 1.}},
 			"naan": interference.CoefficientsMatrix{{0.25, 0.5}, {0.5, 0.25}}},
+		[]float64{0., 0.},
+		map[string]float64{"baati": 1., "naan": 1.},
 	}
 	experiment = scheduler_config.OfflineSchedulingExperiment{"nodeDifference",
 		[]int{0, 1, 0, 1}}
@@ -64,6 +70,8 @@ func interferenceTest() {
 	model = interference.ModelType{
 		2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 2.}, {0.5, 1.}}},
+		[]float64{0., 0.},
+		map[string]float64{"baati": 1.},
 	}
 	experiment = scheduler_config.OfflineSchedulingExperiment{"nonSymetricCoeff",
 		[]int{0, 1, 0}}
@@ -73,10 +81,22 @@ func interferenceTest() {
 		2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{100., 200.}, {50., 100.}},
 			"naan": interference.CoefficientsMatrix{{100., 200.}, {50., 100.}}},
+		[]float64{0., 0.},
+		map[string]float64{"baati": 1., "naan": 1.},
 	}
-
 	experiment = scheduler_config.OfflineSchedulingExperiment{"countLoadApartFromUs",
 		[]int{0, 1}}
+	interferenceTestSingle(model, experiment)
+
+	model = interference.ModelType{
+		2, map[string]interference.CoefficientsMatrix{
+			"baati": interference.CoefficientsMatrix{{1., 2}, {2, 1.}},
+			"naan": interference.CoefficientsMatrix{{1., 2}, {2, 1.}}},
+		[]float64{1., 0.},
+		map[string]float64{"baati": 1., "naan": 1.},
+	}
+	experiment = scheduler_config.OfflineSchedulingExperiment{"resourceConstraints",
+		[]int{0, 1, 0, 1}}
 	interferenceTestSingle(model, experiment)
 }
 
