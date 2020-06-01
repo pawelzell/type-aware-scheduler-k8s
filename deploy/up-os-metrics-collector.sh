@@ -1,5 +1,8 @@
 #!/bin/bash
 kNODE_EXPORTER_DIR="node_exporter-1.0.0-rc.1.linux-amd64"
+if [[ ! -e run ]]; then
+  mkdir run
+fi
 if [[ ! -e $kNODE_EXPORTER_DIR ]]; then
   wget https://github.com/prometheus/node_exporter/releases/download/v1.0.0-rc.1/node_exporter-1.0.0-rc.1.linux-amd64.tar.gz
   tar -zxf "${kNODE_EXPORTER_DIR}.tar.gz"
