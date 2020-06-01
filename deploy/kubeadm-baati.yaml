@@ -9,7 +9,7 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 10.9.99.2
+  advertiseAddress: 10.2.1.93
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
