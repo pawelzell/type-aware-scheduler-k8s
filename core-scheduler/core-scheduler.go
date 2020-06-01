@@ -122,10 +122,13 @@ func ComputeScheduleCost(model interference.ModelType, nodeLookup []string, sche
 			if nodeSchedule[i] <= 0. {
 				continue
 			}
+			// We count only load of the others
+			nodeSchedule[i] -= 1
 			typeCost := 0.
 			for j := 0; j < model.NTaskTypes; j++ {
 				typeCost += coefficients[i][j] * nodeSchedule[j]
 			}
+			nodeSchedule[i] += 1
 			maxCost = math.Max(maxCost, typeCost)
 		}
 	}
