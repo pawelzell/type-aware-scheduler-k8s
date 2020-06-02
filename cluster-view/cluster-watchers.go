@@ -13,7 +13,8 @@ import (
 )
 
 func InitClusterView(config *rest.Config, podsChan chan <- PodData,
-		quit chan struct{}) {
+		quit chan struct{}, schedulerName_ string) {
+	schedulerName = schedulerName_
 	log.Println("InitPodNodesWatcher log")
 	initClusterViewStruct(podsChan)
 	clientset, err := kubernetes.NewForConfig(config)
@@ -72,7 +73,7 @@ func handlePodChange(fn podHanderFn) func(obj interface{}) {
 }
 
 func shouldSchedule(pod *v1.Pod) bool {
-	return pod.Spec.NodeName == "" && pod.Spec.SchedulerName == scheduler_config.SchedulerName
+	return pod.Spec.NodeName == "" && pod.Spec.SchedulerName == schedulerName
 }
 
 // TODO handle pods with other schedulers

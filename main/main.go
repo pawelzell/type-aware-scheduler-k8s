@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
-	"sync"
+	"log"
+	"os"
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
-	inter "type-aware-scheduler/interference"
-	metrics "type-aware-scheduler/metrics-collector"
 	core "type-aware-scheduler/core-scheduler"
 	scheduler_config "type-aware-scheduler/scheduler-config"
 )
@@ -35,39 +33,41 @@ func test() {
 }
 
 func main() {
-	fmt.Println("Starting core scheduler v2")
-	var wg sync.WaitGroup
-	podsMetricsChan := make(chan v1beta1.PodMetrics, 100)
-	nodesMetricsChan := make(chan v1beta1.NodeMetrics, 100)
+	log.Println("Starting core scheduler v2")
 	podsChan := make(chan cluster_view.PodData, 100)
 	quitChan := make(chan struct{})
-	defer close(podsMetricsChan)
-	defer close(nodesMetricsChan)
 	defer close(podsChan)
 	defer close(quitChan)
-
-	offlineExpConfigChan := make(chan scheduler_config.OfflineSchedulingExperiment)
-	defer close(offlineExpConfigChan)
-	offlineExpConfigReader := scheduler_config.NewConfigReader(scheduler_config.OfflineExpConfigPath,
-		offlineExpConfigChan)
-	offlineSchedulerDecisionMaker := core.NewOfflineSchedulingDecisionMaker(offlineExpConfigChan)
-	go offlineSchedulerDecisionMaker.RunExperimentWatcher()
-	go offlineExpConfigReader.Run()
-
-
 	config, err := scheduler_config.GetConfigInCluster()
 	if err != nil {
 		panic(err.Error())
 	}
-	cluster_view.InitClusterView(config, podsChan, quitChan)
 
-	wg.Add(3) // TODO change to 3 when collect metrics enabled
-	go inter.TrainInterferenceModel(&wg, podsMetricsChan, nodesMetricsChan)
-	go metrics.CollectMetrics(config, &wg, podsMetricsChan, nodesMetricsChan)
+	schedulerType := os.Getenv(scheduler_config.SchedulerTypeEnvKey)
+	var scheduler core.Scheduler
+	log.Printf("Scheduler type %s\n", schedulerType)
+	if schedulerType == scheduler_config.RandomSchedulerType {
+		log.Println("Initializing random scheduler")
+		schedulerDecisionMaker := core.NewRandomSchedulingDecisionMaker()
+		scheduler = core.NewScheduler(config, podsChan, &schedulerDecisionMaker, schedulerType)
+	} else if schedulerType == scheduler_config.OfflineSchedulerType {
+		log.Println("Initializing type aware offline scheduler")
+		offlineExpConfigChan := make(chan scheduler_config.OfflineSchedulingExperiment)
+		defer close(offlineExpConfigChan)
+		offlineExpConfigReader := scheduler_config.NewConfigReader(scheduler_config.OfflineExpConfigPath,
+			offlineExpConfigChan)
+
+		schedulerDecisionMaker := core.NewOfflineSchedulingDecisionMaker(offlineExpConfigChan)
+		go schedulerDecisionMaker.RunExperimentWatcher()
+		go offlineExpConfigReader.Run()
+		scheduler = core.NewScheduler(config, podsChan, &schedulerDecisionMaker, schedulerType)
+	} else {
+		panic(fmt.Sprintf("Unknown scheduler type read from environment: %s", schedulerType))
+	}
+
+	cluster_view.InitClusterView(config, podsChan, quitChan, schedulerType)
 	go ClusterViewPrinter()
-	scheduler := core.NewScheduler(config, podsChan, &offlineSchedulerDecisionMaker)
 	scheduler.Run(quitChan)
-	wg.Wait()
 }
 
 func ClusterViewPrinter() {

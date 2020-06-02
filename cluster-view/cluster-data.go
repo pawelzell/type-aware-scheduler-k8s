@@ -35,5 +35,6 @@ var clusterViewLock *sync.RWMutex
 var podLookup map[PodId]PodData
 var nodeLookup map[string]NodeData
 var podToBeScheduled chan <- PodData
+var schedulerName string
 
 

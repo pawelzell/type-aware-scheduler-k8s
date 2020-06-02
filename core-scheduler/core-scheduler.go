@@ -23,6 +23,7 @@ type Scheduler struct {
 	clientset  *kubernetes.Clientset
 	podQueue   <-chan cluster_view.PodData
 	DecisionMaker SchedulingDecisionMaker
+	SchedulerName string
 }
 
 type SchedulingDecisionMaker interface {
@@ -250,7 +251,7 @@ func (m *OfflineSchedulingDecisionMaker) RunExperimentWatcher() {
 }
 
 func NewScheduler(config *rest.Config, podQueue <-chan cluster_view.PodData,
-		decisionMaker SchedulingDecisionMaker) Scheduler {
+		decisionMaker SchedulingDecisionMaker, schedulerName string) Scheduler {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatal(err) }
@@ -258,6 +259,7 @@ func NewScheduler(config *rest.Config, podQueue <-chan cluster_view.PodData,
 		clientset:  clientset,
 		podQueue:   podQueue,
 		DecisionMaker: decisionMaker,
+		SchedulerName: schedulerName,
 	}
 }
 
@@ -315,13 +317,27 @@ func computeNodeMaxCost(node cluster_view.NodeData, coefficients [][]float64, nT
 	return maxCost
 }
 
-func MakeSchedulingDecisionRandom(podData cluster_view.PodData) string {
-	nodes := cluster_view.GetNodesForScheduling()
+type RandomSchedulingDecisionMaker struct {
+	Model interference.ModelType
+}
+
+func NewRandomSchedulingDecisionMaker() RandomSchedulingDecisionMaker {
+	model, err := interference.GetInterferenceModel()
+	if err != nil {
+		log.Fatal("Failed to obtain the interference model")
+	}
+	return RandomSchedulingDecisionMaker{
+		Model:                  model,
+	}
+}
+
+func (m *RandomSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeData) string {
 	n := len(nodes)
 	if n <= 0 {
 		return ""
 	}
-	return nodes[rand.Intn(n)].Data.Name
+	nodeId := rand.Intn(n)
+	return nodes[nodeId].Data.Name
 }
 
 func (s *Scheduler) emitEvent(p *v1.Pod, message string) error {
@@ -334,7 +350,7 @@ func (s *Scheduler) emitEvent(p *v1.Pod, message string) error {
 		FirstTimestamp: metav1.NewTime(timestamp),
 		Type:           "Normal",
 		Source: v1.EventSource{
-			Component: scheduler_config.SchedulerName,
+			Component: s.SchedulerName,
 		},
 		InvolvedObject: v1.ObjectReference{
 			Kind:      "Pod",

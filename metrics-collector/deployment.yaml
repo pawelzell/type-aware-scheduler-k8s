@@ -1,27 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: type-aware-scheduler
+  name: metrics-collector
   labels:
-    app: type-aware-scheduler
+    app: metrics-collector
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: type-aware-scheduler
+      app: metrics-collector
   template:
     metadata:
       labels:
-        app: type-aware-scheduler
+        app: metrics-collector
     spec:
       serviceAccountName: type-aware-scheduler
       containers:
-      - name: type-aware-scheduler
-        image: pawelzell/type-aware-scheduler
+      - name: metrics-collector
+        image: pawelzell/metrics-collector
         imagePullPolicy: Always
         envFrom:
         - secretRef:
             name: influxdb-creds
-        env:
-        - name: SCHEDULER_TYPE
-          value: "type-aware-scheduler"
+

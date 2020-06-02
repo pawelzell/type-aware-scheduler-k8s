@@ -5,5 +5,7 @@ kMETRICS_SERVER=../../metrics-server
   ./up.sh && 
   kubectl apply -f $kMETRICS_SERVER/deploy/1.8+/ && 
   kubectl apply -f ../main/deployment.yaml #&&
-  ./up-os-metrics-collector.sh
+  kubectl apply -f ../main/deployment-random.yaml #&&
+  kubectl apply -f ../metrics-collector/deployment.yaml #&&
+  # ./up-os-metrics-collector.sh
 

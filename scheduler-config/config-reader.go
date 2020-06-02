@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const refreshConfigInterval = 30 * time.Second
+const refreshConfigInterval = 15 * time.Second
 
 type OfflineSchedulingExperiment struct {
 	Id string
