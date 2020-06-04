@@ -340,6 +340,31 @@ func (m *RandomSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view.
 	return nodes[nodeId].Data.Name
 }
 
+type RoundRobinSchedulingDecisionMaker struct {
+	Model            interference.ModelType
+	LastSelectedNode int
+}
+
+func NewRoundRobinSchedulingDecisionMaker() RoundRobinSchedulingDecisionMaker {
+	model, err := interference.GetInterferenceModel()
+	if err != nil {
+		log.Fatal("Failed to obtain the interference model")
+	}
+	return RoundRobinSchedulingDecisionMaker{
+		Model:            model,
+		LastSelectedNode: -1,
+	}
+}
+
+func (m *RoundRobinSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeData) string {
+	n := len(nodes)
+	if n <= 0 {
+		return ""
+	}
+	m.LastSelectedNode = (m.LastSelectedNode +1) % n
+	return nodes[m.LastSelectedNode].Data.Name
+}
+
 func (s *Scheduler) emitEvent(p *v1.Pod, message string) error {
 	timestamp := time.Now().UTC()
 	_, err := s.clientset.CoreV1().Events(p.Namespace).Create(&v1.Event{

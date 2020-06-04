@@ -10,6 +10,7 @@ import (
 
 const SchedulerTypeEnvKey = "SCHEDULER_TYPE"
 const RandomSchedulerType = "random-scheduler"
+const RoundRobinSchedulerType = "round-robin-scheduler"
 const OfflineSchedulerType = "type-aware-scheduler"
 const InfluxDBUsernameEnvKey = "INFLUXDB_USERNAME"
 const InfluxDBPasswordEnvKey = "INFLUXDB_PASSWORD"

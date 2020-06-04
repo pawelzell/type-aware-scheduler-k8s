@@ -50,6 +50,10 @@ func main() {
 		log.Println("Initializing random scheduler")
 		schedulerDecisionMaker := core.NewRandomSchedulingDecisionMaker()
 		scheduler = core.NewScheduler(config, podsChan, &schedulerDecisionMaker, schedulerType)
+	} else if schedulerType == scheduler_config.RoundRobinSchedulerType {
+		log.Println("Initializing round robin scheduler")
+		schedulerDecisionMaker := core.NewRoundRobinSchedulingDecisionMaker()
+		scheduler = core.NewScheduler(config, podsChan, &schedulerDecisionMaker, schedulerType)
 	} else if schedulerType == scheduler_config.OfflineSchedulerType {
 		log.Println("Initializing type aware offline scheduler")
 		offlineExpConfigChan := make(chan scheduler_config.OfflineSchedulingExperiment)

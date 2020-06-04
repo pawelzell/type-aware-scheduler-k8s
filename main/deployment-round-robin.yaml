@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: round-robin-scheduler
+  labels:
+    app: round-robin-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: round-robin-scheduler
+  template:
+    metadata:
+      labels:
+        app: round-robin-scheduler
+    spec:
+      serviceAccountName: type-aware-scheduler
+      containers:
+      - name: round-robin-scheduler
+        image: pawelzell/type-aware-scheduler
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: influxdb-creds
+        env:
+        - name: SCHEDULER_TYPE
+          value: "round-robin-scheduler"
