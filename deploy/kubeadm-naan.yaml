@@ -84,8 +84,8 @@ hairpinMode: promiscuous-bridge
 healthzBindAddress: 127.0.0.1
 healthzPort: 10248
 httpCheckFrequency: 20s
-imageGCHighThresholdPercent: 85
-imageGCLowThresholdPercent: 80
+imageGCHighThresholdPercent: 95
+imageGCLowThresholdPercent: 90
 imageMinimumGCAge: 2m0s
 iptablesDropBit: 15
 iptablesMasqueradeBit: 14
