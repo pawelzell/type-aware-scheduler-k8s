@@ -60,10 +60,11 @@ func formatMetricName(ss ...string) string {
 	return strings.Join(args, "/")
 }
 
-func addMetricPoint(metricName string, quantity int64, timestamp time.Time, bp client.BatchPoints) (err error) {
+func addMetricPoint(metricName string, quantity int64, windowSeconds float64, timestamp time.Time, bp client.BatchPoints) (err error) {
 	tags := map[string]string{}
 	fields := map[string]interface{}{
 		"value": quantity,
+		"windowSeconds": windowSeconds,
 	}
 	pt, err := client.NewPoint(metricName, tags, fields, timestamp)
 	if err == nil {
@@ -85,7 +86,7 @@ func addPodMetrics(pod v1beta1.PodMetrics, bp client.BatchPoints) (err error) {
 		for resource, quantity := range container.Usage {
 			metricName := formatMetricName("pod", pod.Namespace, pod.Name, container.Name, resource.String())
 			var rescaledQuantity = getRescaledQuantity(quantity, resource.String())
-			err = addMetricPoint(metricName, rescaledQuantity, pod.Timestamp.UTC(), bp)
+			err = addMetricPoint(metricName, rescaledQuantity, pod.Window.Seconds(), pod.Timestamp.UTC(), bp)
 			if err != nil {
 				return
 			}
@@ -98,7 +99,7 @@ func addNodeMetrics(node v1beta1.NodeMetrics, bp client.BatchPoints) (err error)
 	for resource, quantity := range node.Usage {
 		metricName := formatMetricName("node", node.Name, resource.String())
 		var rescaledQuantity = getRescaledQuantity(quantity, resource.String())
-		err = addMetricPoint(metricName, rescaledQuantity, node.Timestamp.UTC(), bp)
+		err = addMetricPoint(metricName, rescaledQuantity, node.Window.Seconds(), node.Timestamp.UTC(), bp)
 		if err != nil {
 			return
 		}

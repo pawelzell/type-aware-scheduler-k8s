@@ -11,7 +11,7 @@ import (
 	scheduler_config "type-aware-scheduler/scheduler-config"
 )
 
-const fetchMetricsInterval = 5 * time.Second
+const fetchMetricsInterval = 15 * time.Second
 
 func CollectMetrics(config *rest.Config) {
 	log.Println("Starting metrics-collector")
