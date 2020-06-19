@@ -8,18 +8,19 @@ if [[ ! -e $kNODE_EXPORTER_DIR ]]; then
   tar -zxf "${kNODE_EXPORTER_DIR}.tar.gz"
 fi
 # 1. Run node exporter
-./$kNODE_EXPORTER_DIR/node_exporter &
+./$kNODE_EXPORTER_DIR/node_exporter --collector.perf.cpus=0-24 &
 kNODE_EXPORTER_PID="$!"
 kNODE_EXPORTER_PIDFILE="run/node_exporter.pid"
 echo $kNODE_EXPORTER_PID > $kNODE_EXPORTER_PIDFILE
 
-# 3. Run kubectl  proxy
+# 2. Run kubectl  proxy
 kINFLUX_POD=$(kubectl get pods | awk '/^influx/ {print $1}')
 kubectl port-forward "$kINFLUX_POD" 8086:8086 &
 kKUBECTL_PROXY_PID="$!"
 kKUBECTL_PROXY_PIDFILE="run/kubectl_proxy.pid"
 echo $kKUBECTL_PROXY_PID > $kKUBECTL_PROXY_PIDFILE
 
+# 3. Run os metrics collector
 cd ../os-metrics-collector || exit 1
 go build -o app . || exit 1
 ./app &
