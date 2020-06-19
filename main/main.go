@@ -48,7 +48,14 @@ func main() {
 	log.Printf("Scheduler type %s\n", schedulerType)
 	if schedulerType == scheduler_config.RandomSchedulerType {
 		log.Println("Initializing random scheduler")
-		schedulerDecisionMaker := core.NewRandomSchedulingDecisionMaker()
+		offlineExpConfigChan := make(chan scheduler_config.OfflineSchedulingExperiment)
+		defer close(offlineExpConfigChan)
+		offlineExpConfigReader := scheduler_config.NewConfigReader(scheduler_config.OfflineExpConfigPath,
+			offlineExpConfigChan)
+
+		schedulerDecisionMaker := core.NewRandomSchedulingDecisionMaker(offlineExpConfigChan)
+		go schedulerDecisionMaker.RunExperimentWatcher()
+		go offlineExpConfigReader.Run()
 		scheduler = core.NewScheduler(config, podsChan, &schedulerDecisionMaker, schedulerType)
 	} else if schedulerType == scheduler_config.RoundRobinSchedulerType {
 		log.Println("Initializing round robin scheduler")

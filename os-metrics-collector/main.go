@@ -11,7 +11,7 @@ import (
 	db_client "type-aware-scheduler/db-client"
 )
 
-const collectOSMetricsInterval = 30 * time.Second
+const collectOSMetricsInterval = 5 * time.Second
 const collectOSMetricsEndpointURL = "http://localhost:9100/metrics"
 const osMetricsMeasurementName = "metric/os"
 var metricWhitelistPrefixes = [...]string{""}

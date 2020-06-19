@@ -80,7 +80,7 @@ func shouldSchedule(pod *v1.Pod) bool {
 func handlePodAdd(pod *v1.Pod) {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	log.Printf("Handle pod add %s scheduler %s\n", PodToString(pod), pod.Spec.SchedulerName)
+	//log.Printf("Handle pod add %s scheduler %s\n", PodToString(pod), pod.Spec.SchedulerName)
 	podId := PodId {pod.Name, pod.Namespace}
 	_, found := podLookup[podId]
 	if found {
@@ -110,7 +110,7 @@ func handlePodAdd(pod *v1.Pod) {
 func handlePodDelete(pod *v1.Pod) {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	log.Printf("Handle pod delete %s scheduler %s\n", PodToString(pod), pod.Spec.SchedulerName)
+	//log.Printf("Handle pod delete %s scheduler %s\n", PodToString(pod), pod.Spec.SchedulerName)
 	podId := PodId {pod.Name, pod.Namespace}
 	podData, found := podLookup[podId]
 	if !found {
@@ -122,6 +122,7 @@ func handlePodDelete(pod *v1.Pod) {
 }
 
 func handlePodUpdate(oldObj interface{}, newObj interface{}) {
+	/*
 	oldPod, ok := oldObj.(*v1.Pod)
 	newPod, ok2 := newObj.(*v1.Pod)
 	if !ok || !ok2 {
@@ -129,7 +130,8 @@ func handlePodUpdate(oldObj interface{}, newObj interface{}) {
 	}
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	log.Printf("Update pod %s / %s\n", PodToString(oldPod), PodToString(newPod))
+	//log.Printf("Update pod %s / %s\n", PodToString(oldPod), PodToString(newPod))
+	 */
 	// TODO
 }
 
@@ -151,7 +153,7 @@ func handleNodeAdd(node *v1.Node) {
 func handleNodeDelete(node *v1.Node) {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	log.Printf("Handle node delete %s\n", node.Name)
+	//log.Printf("Handle node delete %s\n", node.Name)
 	_, found := nodeLookup[node.Name]
 	if !found {
 		log.Fatal("Trying to delete node that is not in the system %s\n", node.Name)
@@ -169,7 +171,7 @@ func handleNodeUpdate(oldObj interface{}, newObj interface{}) {
 	}
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
-	log.Printf("Update node %s / %s\n", oldNode.Name, newNode.Name)
+	//log.Printf("Update node %s / %s\n", oldNode.Name, newNode.Name)
 	newNodeData := NodeData {
 		Data : newNode.DeepCopy(),
 	}

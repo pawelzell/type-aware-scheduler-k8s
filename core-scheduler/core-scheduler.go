@@ -10,6 +10,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"sort"
 	"sync"
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
@@ -319,26 +320,72 @@ func computeNodeMaxCost(node cluster_view.NodeData, coefficients [][]float64, nT
 
 type RandomSchedulingDecisionMaker struct {
 	Model interference.ModelType
+	Random *rand.Rand
+	Schedule []int
+	SchedulePos int
+	FirstNodePr float64
+	UpdateChan <-chan scheduler_config.OfflineSchedulingExperiment
+	ExperimentLock *sync.RWMutex
 }
 
-func NewRandomSchedulingDecisionMaker() RandomSchedulingDecisionMaker {
+func NewRandomSchedulingDecisionMaker(updateChan <-chan scheduler_config.OfflineSchedulingExperiment) RandomSchedulingDecisionMaker {
 	model, err := interference.GetInterferenceModel()
 	if err != nil {
 		log.Fatal("Failed to obtain the interference model")
 	}
+	seed := time.Now().UnixNano()
+	log.Printf("Initialize random generator with seed %d\n", seed)
 	return RandomSchedulingDecisionMaker{
 		Model:                  model,
+		Random: rand.New(rand.NewSource(seed)),
+		Schedule: make([]int, 0),
+		SchedulePos: 0,
+		FirstNodePr: scheduler_config.RandomSchedulerFirstNodeProbability,
+		UpdateChan: updateChan,
+		ExperimentLock: new(sync.RWMutex),
 	}
 }
 
 func (m *RandomSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeData) string {
-	n := len(nodes)
-	if n <= 0 {
+	m.ExperimentLock.Lock()
+	defer m.ExperimentLock.Unlock()
+	sort.Sort(NodesByName(nodes)) // We do not have a guarantee on node order
+	if len(nodes) < 2 || m.SchedulePos >= len(m.Schedule) {
 		return ""
 	}
-	nodeId := rand.Intn(n)
-	return nodes[nodeId].Data.Name
+	selectedNodeId := m.Schedule[m.SchedulePos]
+	selectedNode := nodes[selectedNodeId].Data.Name
+	log.Printf("Selecting node no %d which is %s according to schedule pos %d\n", selectedNodeId, selectedNode, m.SchedulePos)
+	m.SchedulePos += 1
+	return selectedNode
 }
+
+func (m *RandomSchedulingDecisionMaker) GetRandomSchedule(exp scheduler_config.OfflineSchedulingExperiment) []int {
+	n := len(exp.TaskTypesIds)
+	res := make([]int, n)
+	for i:=0; i < n; i++ {
+		res[i] = 0
+		if float64(i) >= m.FirstNodePr * float64(n) {
+			res[i] = 1
+		}
+	}
+	m.Random.Shuffle(n, func(i, j int) {
+		res[i], res[j] = res[j], res[i]
+	})
+	return res
+}
+
+func (m *RandomSchedulingDecisionMaker) RunExperimentWatcher() {
+	for {
+		exp := <-m.UpdateChan
+		log.Printf("DecisionMaker: Got new offline experiment config with id %s\n", exp.Id)
+		m.ExperimentLock.Lock()
+		m.Schedule = m.GetRandomSchedule(exp)
+		m.SchedulePos = 0
+		m.ExperimentLock.Unlock()
+	}
+}
+
 
 type RoundRobinSchedulingDecisionMaker struct {
 	Model            interference.ModelType
@@ -356,7 +403,14 @@ func NewRoundRobinSchedulingDecisionMaker() RoundRobinSchedulingDecisionMaker {
 	}
 }
 
+// https://golang.org/pkg/sort/
+type NodesByName []cluster_view.NodeData
+func (a NodesByName) Len() int           { return len(a) }
+func (a NodesByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a NodesByName) Less(i, j int) bool { return a[i].Data.Name < a[j].Data.Name }
+
 func (m *RoundRobinSchedulingDecisionMaker) MakeSchedulingDecision(pod cluster_view.PodData, nodes []cluster_view.NodeData) string {
+	sort.Sort(NodesByName(nodes)) // We do not have a guarantee on node order
 	n := len(nodes)
 	if n <= 0 {
 		return ""

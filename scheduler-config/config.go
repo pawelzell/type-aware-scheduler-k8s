@@ -16,6 +16,7 @@ const InfluxDBUsernameEnvKey = "INFLUXDB_USERNAME"
 const InfluxDBPasswordEnvKey = "INFLUXDB_PASSWORD"
 const InfluxDBHostnameEnvKey = "INFLUXDB_HOST"
 const InfluxDBDatabaseEnvKey = "INFLUXDB_DATABASE"
+const RandomSchedulerFirstNodeProbability = 1. / 3.
 const OfflineExpConfigPath = "exp"
 // TODO load number of task types from yaml configuration
 const NumberOfTaskTypes = 4

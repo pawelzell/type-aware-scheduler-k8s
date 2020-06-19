@@ -9,13 +9,10 @@ import (
 )
 
 func getApplicationInstance(pod PodData) (result string, err error) {
-	podName := pod.Data.Name
-	var index = strings.LastIndex(podName, "ai-")
-	if index < 0 {
-		err = errors.New(fmt.Sprintf("ai- substring not found in pod name %s", podName))
-		return
+	result, ok := pod.Data.ObjectMeta.Labels["ai"]
+	if !ok {
+		err = errors.New(fmt.Sprintf("Ai labels not found in %s", pod.Data.Name))
 	}
-	result = podName[index:]
 	return
 }
 
@@ -71,11 +68,7 @@ func GetNodesForScheduling() []NodeData {
 	clusterViewLock.Lock()
 	defer clusterViewLock.Unlock()
 	result := []NodeData{}
-	for name, node := range nodeLookup {
-		// TODO better way to filter
-		if strings.HasSuffix(name, "control-plane") {
-			continue
-		}
+	for _, node := range nodeLookup {
 		result = append(result, node)
 	}
 	return result
