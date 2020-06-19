@@ -22,10 +22,13 @@ echo $kKUBECTL_PROXY_PID > $kKUBECTL_PROXY_PIDFILE
 
 # 3. Run os metrics collector
 cd ../os-metrics-collector || exit 1
+echo "cd os-metrics-collector"
 go build -o app . || exit 1
+echo "Built os-metrics-collector"
 ./app &
 kOS_METRICS_COLLECTOR_PID="$!"
 cd ../deploy || exit 1
+echo "cd deploy"
 
 kOS_METRICS_COLLECTOR_PIDFILE="run/os_metrics_collector.pid"
 echo $kOS_METRICS_COLLECTOR_PID > $kOS_METRICS_COLLECTOR_PIDFILE
