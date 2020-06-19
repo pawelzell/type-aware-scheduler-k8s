@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs: 
-    server: 10.8.99.2
+    server: 10.2.1.91
     path: /mnt/k8s-type-aware-scheduler-dosa/influxdb
 #  hostPath:
 #path: "/data/kube/pv1"
