@@ -1,6 +1,6 @@
 #!/bin/bash
 kHOST=`hostname`
-if [[ (($kHOST != "baati") && ($kHOST != "naan") && ($kHOST != "dosa"))  ]]; then
+if [[ (($kHOST != "baati") && ($kHOST != "naan") && ($kHOST != "dosa") && ($kHOST != "puri"))  ]]; then
   echo "Host $kHOST not supported, please update this script"
   exit 1
 fi
@@ -11,6 +11,7 @@ kIP1="10.9.99.1"
 kIP2="10.9.99.2"
 kIP3="10.2.1.91"
 kIP4="10.2.1.93"
+kIP5="127.0.0.1"
 
 sudo apt update
 sudo apt install nfs-kernel-server
@@ -19,6 +20,7 @@ sudo chown nobody:nogroup ${DIR}
 sudo mkdir -p ${INFLUXDB_DIR}
 sudo chown nobody:nogroup ${INFLUXDB_DIR}
 sudo chmod 777 ${DIR}
+echo "${DIR} ${kIP5}(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
 echo "${DIR} ${kIP4}(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
 echo "${DIR} ${kIP3}(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
 echo "${DIR} ${kIP2}(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
