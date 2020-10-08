@@ -391,7 +391,7 @@ spec:
         args:
         - --ip-masq
         - --kube-subnet-mgr
-        - --iface=127.0.0.1
+        - --iface=193.0.109.25
         resources:
           requests:
             cpu: "100m"
