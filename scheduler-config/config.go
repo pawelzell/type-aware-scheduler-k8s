@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 )
 
-
 const SchedulerTypeEnvKey = "SCHEDULER_TYPE"
 const RandomSchedulerType = "random-scheduler"
 const RoundRobinSchedulerType = "round-robin-scheduler"
@@ -19,12 +18,6 @@ const InfluxDBDatabaseEnvKey = "INFLUXDB_DATABASE"
 const RandomSchedulerFirstNodeProbability = 1. / 3.
 const OfflineExpConfigPath = "exp"
 // TODO load number of task types from yaml configuration
-const NumberOfTaskTypes = 4
-var TypeStringToId = map[string]int{"redis_ycsb": 0, "wrk": 1, "hadoop": 2, "linpack": 3}
-var RoleToType = map[string]string{"ycsb": "redis_ycsb", "redis": "redis_ycsb",
-	"wrk": "wrk", "apache": "wrk",
-	"hadoopmaster": "hadoop", "hadoopslave": "hadoop",
-	"linpack": "linpack"}
 
 func GetConfigInCluster() (*rest.Config, error) {
 	return rest.InClusterConfig()

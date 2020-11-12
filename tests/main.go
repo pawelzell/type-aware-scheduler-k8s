@@ -35,7 +35,7 @@ func interferenceTestSingle(model interference.ModelType, exp scheduler_config.O
 
 func interferenceTest() {
 	model := interference.ModelType{
-		2, map[string]interference.CoefficientsMatrix{
+		"", 2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 2}, {2, 1.}},
 			"naan": interference.CoefficientsMatrix{{1., 2}, {2, 1.}}},
 			[]float64{0., 0.},
@@ -46,7 +46,7 @@ func interferenceTest() {
 	interferenceTestSingle(model, experiment)
 
 	model = interference.ModelType{
-		2, map[string]interference.CoefficientsMatrix{
+		"", 2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 0.5}, {0.5, 1.}},
 			"naan": interference.CoefficientsMatrix{{1., 0.5}, {0.5, 1.}}},
 		[]float64{0., 0.},
@@ -57,7 +57,7 @@ func interferenceTest() {
 	interferenceTestSingle(model, experiment)
 
 	model = interference.ModelType{
-		2, map[string]interference.CoefficientsMatrix{
+		"", 2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 0.5}, {0.5, 1.}},
 			"naan": interference.CoefficientsMatrix{{0.25, 0.5}, {0.5, 0.25}}},
 		[]float64{0., 0.},
@@ -68,7 +68,7 @@ func interferenceTest() {
 	interferenceTestSingle(model, experiment)
 
 	model = interference.ModelType{
-		2, map[string]interference.CoefficientsMatrix{
+		"", 2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 2.}, {0.5, 1.}}},
 		[]float64{0., 0.},
 		map[string]float64{"baati": 1.},
@@ -78,7 +78,7 @@ func interferenceTest() {
 	interferenceTestSingle(model, experiment)
 
 	model = interference.ModelType{
-		2, map[string]interference.CoefficientsMatrix{
+		"", 2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{100., 200.}, {50., 100.}},
 			"naan": interference.CoefficientsMatrix{{100., 200.}, {50., 100.}}},
 		[]float64{0., 0.},
@@ -89,7 +89,7 @@ func interferenceTest() {
 	interferenceTestSingle(model, experiment)
 
 	model = interference.ModelType{
-		2, map[string]interference.CoefficientsMatrix{
+		"", 2, map[string]interference.CoefficientsMatrix{
 			"baati": interference.CoefficientsMatrix{{1., 2}, {2, 1.}},
 			"naan": interference.CoefficientsMatrix{{1., 2}, {2, 1.}}},
 		[]float64{1., 0.},
@@ -130,10 +130,18 @@ func testReader(path string) {
 	}
 }
 
+func configParserTest() {
+	err := interference.InitializeFromConfigFile()
+	if err != nil {
+		panic(err)
+	}
+	interference.PrintConfig()
+}
+
 func main() {
 	//path := "exp"
 	//testParse(path)
 	//testReader(path)
-	interferenceTest()
-
+	//interferenceTest()
+	configParserTest()
 }

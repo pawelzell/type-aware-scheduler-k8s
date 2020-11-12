@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"type-aware-scheduler/interference"
 )
 
 const refreshConfigInterval = 15 * time.Second
@@ -55,7 +56,7 @@ func TryToParseOfflineExperimentFromLine(line string) (exp OfflineSchedulingExpe
 	types := strings.Split(components[3], ",")
 	taskTypeIds := make([]int, 0)
 	for _, t := range types {
-		typeId, found := TypeStringToId[t]
+		typeId, found := interference.TypeStringToId[t]
 		if !found {
 			err = errors.New(fmt.Sprintf("unknown task type %s", t))
 			return

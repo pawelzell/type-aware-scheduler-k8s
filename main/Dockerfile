@@ -14,4 +14,5 @@
 
 FROM debian
 COPY app /app
+COPY scheduler_config /scheduler_config
 ENTRYPOINT /app
