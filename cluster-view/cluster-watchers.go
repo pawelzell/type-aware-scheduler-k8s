@@ -9,7 +9,6 @@ import (
 	"log"
 	"sync"
 	"type-aware-scheduler/interference"
-	scheduler_config "type-aware-scheduler/scheduler-config"
 )
 
 func InitClusterView(config *rest.Config, podsChan chan <- PodData,
@@ -145,7 +144,7 @@ func handleNodeAdd(node *v1.Node) {
 		return
 	}
 	nodeLookup[node.Name] = NodeData {
-		TypeToLoad: new([scheduler_config.NumberOfTaskTypes]float64)[:],
+		TypeToLoad: make([]float64, interference.NumberOfTaskTypes),
 		Data: node.DeepCopy(),
 	}
 }
@@ -179,7 +178,7 @@ func handleNodeUpdate(oldObj interface{}, newObj interface{}) {
 	if found {
 		newNodeData.TypeToLoad = oldNodeData.TypeToLoad
 	} else {
-		newNodeData.TypeToLoad = new([scheduler_config.NumberOfTaskTypes]float64)[:]
+		newNodeData.TypeToLoad = make([]float64, interference.NumberOfTaskTypes)
 		log.Fatal("Trying to update node that cannot be found in system %s\n", oldNode.Name)
 	}
 	nodeLookup[newNode.Name] = newNodeData

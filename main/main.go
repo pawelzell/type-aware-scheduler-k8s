@@ -7,6 +7,7 @@ import (
 	"time"
 	cluster_view "type-aware-scheduler/cluster-view"
 	core "type-aware-scheduler/core-scheduler"
+	"type-aware-scheduler/interference"
 	scheduler_config "type-aware-scheduler/scheduler-config"
 )
 
@@ -33,7 +34,12 @@ func test() {
 }
 
 func main() {
-	log.Println("Starting core scheduler v2")
+	log.Println("Starting core scheduler v3")
+	err := interference.InitializeFromConfigFile()
+	if err != nil {
+		panic(err.Error())
+	}
+	interference.PrintConfig()
 	podsChan := make(chan cluster_view.PodData, 100)
 	quitChan := make(chan struct{})
 	defer close(podsChan)
