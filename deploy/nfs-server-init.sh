@@ -1,6 +1,6 @@
 #!/bin/bash
 kHOST=`hostname`
-if [[ (($kHOST != "baati") && ($kHOST != "naan") && ($kHOST != "dosa") && ($kHOST != "puri"))  ]]; then
+if [[ (($kHOST != "baati") && ($kHOST != "naan") && ($kHOST != "dosa") && ($kHOST != "puri") && ($kHOST != "kulcha"))  ]]; then
   echo "Host $kHOST not supported, please update this script"
   exit 1
 fi

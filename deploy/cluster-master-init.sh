@@ -1,6 +1,6 @@
 #!/bin/bash
 kHOST=`hostname`
-if [[ ( $kHOST != "baati" ) && ( $kHOST != "naan" ) && ( $kHOST != "dosa" ) && ( $kHOST != "puri" ) ]]; then
+if [[ ( $kHOST != "baati" ) && ( $kHOST != "naan" ) && ( $kHOST != "dosa" ) && ( $kHOST != "puri" ) && ( $kHOST != "kulcha" ) ]]; then
   echo "Hostname $kHOST not supported, please create kubeadm-config file for new host and update flannel.yaml"
   exit 1
 fi
